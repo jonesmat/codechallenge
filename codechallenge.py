@@ -56,6 +56,9 @@ def show_problem(prob_id):
 
 if __name__ == '__main__':
 	app.config['PROBLEM_OUTPUT_FOLDER'] = 'problem_outputs/'
+	if not os.path.exists(app.config['PROBLEM_OUTPUT_FOLDER']):
+		os.makedirs(app.config['PROBLEM_OUTPUT_FOLDER'])
+	
 	app.debug = True
 	app.run(host='0.0.0.0')
 
