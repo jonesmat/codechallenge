@@ -20,5 +20,14 @@
 				<input type="submit" value="Submit">
 			</div>
 		</form>
+		
+		<br>
+		
+		<h2>Scores</h2>
+		<ul>
+			{% for score in problem.scores %}
+			<li>{{ score.email }}: {{ score.score }}</li>
+			{% endfor %}
+		</ul>
 	</body>
 </html>

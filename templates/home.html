@@ -6,9 +6,9 @@
 		<h1>Pick a Problem to solve! </h1>
 		<ul>
 		{% for problem in problems %} 
-			<li>
-				<a href="/problem/{{ problem.prob_id }}">{{ problem.name }}</a>
-			</li>
+		<li>
+			<a href="/problem/{{ problem.prob_id }}">{{ problem.name }}</a>
+		</li>
 		{% endfor %}
 		</ul>
 	</body>
