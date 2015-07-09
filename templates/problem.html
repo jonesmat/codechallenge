@@ -1,0 +1,24 @@
+<html>
+	<head>
+		<title>CAPSHER Code Challenge - {{ problem.name }}</title>
+	</head>
+	<body>
+		<h1>{{ problem.name }}</h1>
+		<div> {{ problem.instructions }} </div>
+		<br>
+		
+		<form action="" method="post" enctype="multipart/form-data">
+			<div style="width:600px">
+				Email:
+				<input type="text" name="email">
+			</div>
+			<div style="width:600px">
+				Output file:
+				<input type="file" name="output_file">
+			</div>
+			<div>
+				<input type="submit" value="Submit">
+			</div>
+		</form>
+	</body>
+</html>
