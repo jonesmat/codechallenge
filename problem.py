@@ -6,10 +6,12 @@ class Problem(object):
 		self.name = name
 		self.instructions = instructions
 		
-		self.scores = []  # list of ProblemScores
+		self.attempts = []  # list of ProblemAttempt
 
 
-class ProblemScore(object):
+class ProblemAttempt(object):
+	''' Represents an attempt at solving the problem '''
+	
 	def __init__(self, email, score):
 		self.email = email
 		self.score = score
@@ -31,8 +33,34 @@ class ProblemManager(object):
 				return problem
 		return None
 		
-	def record_score(self, prob_id, email, score):
-		score = ProblemScore(email, score)
+	def record_attempt(self, prob_id, email, score):
+		attempt = ProblemAttempt(email, score)
 		problem = self.get_problem(prob_id)
-		problem.scores.append(score)
+		problem.attempts.append(attempt)
+		return attempt
 
+	@staticmethod
+	def get_highest_scoring_attempts(problem):
+		''' 
+		Choose the highest scores for each player, then order the list by
+		score.
+		
+		Returns a list of ProblemAttempts ordered from highest to lowest (duplicate
+		attempts are considered so that only the highest attempt is considered).
+		'''
+		# Find the highest score for each player (email)
+		highest_scores = dict()  # Dict format (string:ProblemAttempt)
+		for attempt in problem.attempts:
+			# Ensure a baseline score for this player has been established
+			if attempt.email not in highest_scores.keys():
+				highest_scores[attempt.email] = ProblemAttempt('', 0)
+			
+			# See if this score is better that the previous highest
+			if attempt.score > highest_scores[attempt.email].score:
+				# New high score found
+				highest_scores[attempt.email] = attempt
+				
+		# Order the scores
+		return sorted(highest_scores.values(), key = lambda attempt: attempt.score, reverse=True)
+		
+		

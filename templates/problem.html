@@ -1,33 +1,48 @@
-<html>
-	<head>
-		<title>CAPSHER Code Challenge - {{ problem.name }}</title>
-	</head>
-	<body>
-		<h1>{{ problem.name }}</h1>
-		<div> {{ problem.instructions }} </div>
-		<br>
-		
-		<form action="" method="post" enctype="multipart/form-data">
-			<div style="width:600px">
-				Email:
-				<input type="text" name="email">
+{% extends "base.html" %}
+
+{% block title %}CAPSHER Code Challenge - {{ problem.name }}{% endblock %}
+
+{% block content %}
+	<h1>{{ problem.name }}</h1></div>
+	<div> {{ problem.instructions }} </div>
+	<br/>
+	
+	<form class="pure-form pure-form-stacked" action="" method="post" enctype="multipart/form-data">
+		<fieldset>
+			<div style="margin-bottom: 15px;">
+				<label for="email">Email</label>	
+				<input id="email" type="email" name="email">
 			</div>
-			<div style="width:600px">
-				Output file:
-				<input type="file" name="output_file">
+				
+			<div style="margin-bottom: 15px;">
+				<label for="output_file">Output file</label>
+				<input id="output_file" type="file" name="output_file">
 			</div>
-			<div>
-				<input type="submit" value="Submit">
-			</div>
-		</form>
+			
+			<button type="submit" class="pure-button pure-button-primary">Submit</button>
+		</fieldset>
+	</form>
+	
+	<br>
+	
+	<h2>Scores</h2>
+	<table class="pure-table pure-table-horizontal">
+		<thead>
+			<tr>
+				<th>#</th>
+				<th>Email</th>
+				<th>Score</th>
+			</tr>
+		</thead>
 		
-		<br>
-		
-		<h2>Scores</h2>
-		<ul>
-			{% for score in problem.scores %}
-			<li>{{ score.email }}: {{ score.score }}</li>
+		<tbody>
+			{% for attempt in high_scoring_attempts %}
+			<tr>
+				<td>{{loop.index}}</td>
+				<td>{{ attempt.email }}</td>
+				<td>{{ attempt.score }}</td>
+			</tr>
 			{% endfor %}
-		</ul>
-	</body>
-</html>
+		</tbody>
+	</ul>
+{% endblock %}

@@ -8,7 +8,7 @@ from problem import Problem, ProblemManager
 
 ########## Initialization ###########
 
-app = Flask('CodeChallenge')
+app = Flask(__name__, static_url_path="", static_folder = "content")
 
 probmgr = ProblemManager() 
 
@@ -26,7 +26,10 @@ def show_problem(prob_id):
 		problem = probmgr.get_problem(prob_id)
 		if problem is None:
 			assert False, 'Problem id does not exist!'
-		return render_template('problem.html', problem=problem)
+			
+		high_scoring_attempts = probmgr.get_highest_scoring_attempts(problem)
+		return render_template('problem.html', problem=problem, 
+								high_scoring_attempts=high_scoring_attempts)
 		
 	else:
 		# Problem submission
@@ -45,10 +48,10 @@ def show_problem(prob_id):
 		# score = ProblemApp.test(prob_id, savedfilepath)
 		score = randint(0, 100)
 		
-		# Record the score
-		probmgr.record_score(prob_id, request.form['email'], score)
+		# Record the attempt
+		attempt = probmgr.record_attempt(prob_id, request.form['email'], score)
 		
-		return "You scored %s!  Goodluck with the competition!" % score
+		return render_template('problem_submitted.html', prob_id=prob_id, attempt=attempt)
 	
 
 

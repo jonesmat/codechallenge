@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block title %}
+	CAPSHER Code Challenge - Score submission for {{ attempt.email }}
+{% endblock %}
+
+{% block content %}
+	<h2>You scored {{ attempt.score }}!</h2>
+	<div><a href="/problem/{{ prob_id }}">Back to Problem</a></div>
+{% endblock %}

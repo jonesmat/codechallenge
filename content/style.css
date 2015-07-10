@@ -1,0 +1,32 @@
+/*
+ * Most of the styling for the website using the PureCSS style files.  However,
+ * if you need to define custom styling, do it here.
+ */
+
+ 
+/*
+ *		GENERAL
+ */
+
+body
+{
+	padding: 10px;
+}
+
+/*
+ *		BASE TEMPLATE
+ */
+
+div.centered_container
+{
+	position: relative
+}
+
+div.centered_item
+{
+	position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%)
+}
