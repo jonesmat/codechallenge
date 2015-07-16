@@ -35,7 +35,7 @@ def show_problem(prob_id):
 		# Problem submission
 		
 		# Store the uploaded output file
-		output_file = request.files['output_file']
+		output_file = request.files['output_file']  # Returns the actual File obj
 		savedfilepath = ''
 		if output_file:
 			filename = secure_filename(output_file.filename)

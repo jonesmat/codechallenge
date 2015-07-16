@@ -1,10 +1,11 @@
 
 
 class Problem(object):
-	def __init__(self, prob_id, name, instructions):
+	def __init__(self, prob_id, name, instructions, app_path):
 		self.prob_id = prob_id
 		self.name = name
 		self.instructions = instructions
+		self.app_path = app_path
 		
 		self.attempts = []  # list of ProblemAttempt
 
@@ -21,8 +22,8 @@ class ProblemManager(object):
 	def __init__(self):
 		# Establish list of problems
 		self.problems = [
-			Problem('prob1', 'Problem 1', 'Do problem 1 stuff!'), 
-			Problem('prob2', 'Problem 2', 'Do stuff for problem 2')
+			Problem('prob1', 'Problem 1', 'Do problem 1 stuff!', '/path/to/prob1app'), 
+			Problem('prob2', 'Problem 2', 'Do stuff for problem 2', '/path/to/prob2app')
 		]
 		
 		# Read problems from storage
@@ -33,11 +34,17 @@ class ProblemManager(object):
 				return problem
 		return None
 		
+	
+		
 	def record_attempt(self, prob_id, email, score):
 		attempt = ProblemAttempt(email, score)
 		problem = self.get_problem(prob_id)
 		problem.attempts.append(attempt)
 		return attempt
+
+	@staticmethod
+	def score_attempt(app_path, output_file):
+		pass
 
 	@staticmethod
 	def get_highest_scoring_attempts(problem):
