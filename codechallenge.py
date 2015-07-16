@@ -36,17 +36,17 @@ def show_problem(prob_id):
 		
 		# Store the uploaded output file
 		output_file = request.files['output_file']  # Returns the actual File obj
-		savedfilepath = ''
+		output_filepath = ''
 		if output_file:
 			filename = secure_filename(output_file.filename)
 			filename += str(uuid.uuid1())
-			savedfilepath = os.path.join(app.config['PROBLEM_OUTPUT_FOLDER'], 
+			output_filepath = os.path.join(app.config['PROBLEM_OUTPUT_FOLDER'], 
 				filename)
-			output_file.save(savedfilepath)
+			output_file.save(output_filepath)
 
 		# Feed output file to problem app
-		# score = ProblemApp.test(prob_id, savedfilepath)
-		score = randint(0, 100)
+		problem = probmgr.get_problem(prob_id)
+		score = probmgr.score_attempt(problem.app_path, output_filepath)
 		
 		# Record the attempt
 		attempt = probmgr.record_attempt(prob_id, request.form['email'], score)

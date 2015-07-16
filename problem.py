@@ -1,3 +1,4 @@
+import subprocess
 
 
 class Problem(object):
@@ -22,8 +23,8 @@ class ProblemManager(object):
 	def __init__(self):
 		# Establish list of problems
 		self.problems = [
-			Problem('prob1', 'Problem 1', 'Do problem 1 stuff!', '/path/to/prob1app'), 
-			Problem('prob2', 'Problem 2', 'Do stuff for problem 2', '/path/to/prob2app')
+			Problem('prob1', 'Problem 1', 'Do problem 1 stuff!', 'problem_apps/TestProblem1.exe'), 
+			Problem('prob2', 'Problem 2', 'Do stuff for problem 2', 'problem_apps/TestProblem1.exe')
 		]
 		
 		# Read problems from storage
@@ -34,8 +35,6 @@ class ProblemManager(object):
 				return problem
 		return None
 		
-	
-		
 	def record_attempt(self, prob_id, email, score):
 		attempt = ProblemAttempt(email, score)
 		problem = self.get_problem(prob_id)
@@ -43,18 +42,23 @@ class ProblemManager(object):
 		return attempt
 
 	@staticmethod
-	def score_attempt(app_path, output_file):
-		pass
+	def score_attempt(app_path, output_filepath):
+		"""
+		Runs the problem's external application and passes the output file as the
+		only parameter.  Stdout is returned from the app containing the score.
+		"""
+		score = subprocess.check_output([app_path, output_filepath])
+		return int(score)
 
 	@staticmethod
 	def get_highest_scoring_attempts(problem):
-		''' 
+		"""
 		Choose the highest scores for each player, then order the list by
 		score.
 		
 		Returns a list of ProblemAttempts ordered from highest to lowest (duplicate
 		attempts are considered so that only the highest attempt is considered).
-		'''
+		"""
 		# Find the highest score for each player (email)
 		highest_scores = dict()  # Dict format (string:ProblemAttempt)
 		for attempt in problem.attempts:
