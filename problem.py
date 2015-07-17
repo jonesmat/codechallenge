@@ -10,24 +10,124 @@ class Problem(object):
 		
 		self.attempts = []  # list of ProblemAttempt
 
+	@property
+	def ordered_attempts(self):
+		"""
+		A property of Problem that chooses the highest scores for each player, then orders the list 
+		by score.
+		
+		Returns a list of ProblemAttempts ordered from highest to lowest (distincly by teamname 
+		favoring the highest score).
+		"""
+		# Find the highest score for each player (teamname)
+		highest_scores = dict()  # Dict format (string:ProblemAttempt)
+		for attempt in self.attempts:
+			# Ensure a baseline score for this player has been established
+			if attempt.teamname not in highest_scores.keys():
+				highest_scores[attempt.teamname] = ProblemAttempt('', '', 0)
+			
+			# See if this score is better that the previous highest
+			if attempt.score > highest_scores[attempt.teamname].score:
+				# New high score found
+				highest_scores[attempt.teamname] = attempt
+				
+		# Order the scores
+		return sorted(highest_scores.values(), key = lambda attempt: attempt.score, reverse=True)
+
 
 class ProblemAttempt(object):
 	''' Represents an attempt at solving the problem '''
 	
-	def __init__(self, email, score):
-		self.email = email
+	def __init__(self, output_filepath, teamname, score):
+		self.output_filepath = output_filepath
+		self.teamname = teamname
 		self.score = score
 
 		
 class ProblemManager(object):
 	def __init__(self):
-		# Establish list of problems
-		self.problems = [
-			Problem('prob1', 'Problem 1', 'Do problem 1 stuff!', 'problem_apps/TestProblem1.exe'), 
-			Problem('prob2', 'Problem 2', 'Do stuff for problem 2', 'problem_apps/TestProblem1.exe')
-		]
+		# Initialize list of problems
+		self.problems = []
+
+		prob_id = 'prob1e'
+		name = 'First Test Problem (Easy)'
+		instructions = '''<div>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod 
+			tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
+			nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis 
+			aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat 
+			nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui 
+			officia deserunt mollit anim id est laborum.</div>
+			<br/>
+			<div><a href="prob1m">Medium version</a></div>
+			<div><a href="prob1h">Hard version</a></div>
+			<br/>
+			<div>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod 
+			tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
+			nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis 
+			aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat 
+			nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui 
+			officia deserunt mollit anim id est laborum.</div>'''
+		app_path = 'problem_apps/TestProblem1.exe'
+		problem = Problem(prob_id, name, instructions, app_path)
+		self.problems.append(problem)
+
+		prob_id = 'prob1m'
+		name = 'First Test Problem (Medium)'
+		instructions = '''<div>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod 
+			tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
+			nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis 
+			aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat 
+			nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui 
+			officia deserunt mollit anim id est laborum.</div>
+			<br/>
+			<div><a href="prob1e">Easy version</a></div>
+			<div><a href="prob1h">Hard version</a></div>
+			<br/>
+			<div>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod 
+			tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
+			nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis 
+			aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat 
+			nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui 
+			officia deserunt mollit anim id est laborum.</div>'''
+		app_path = 'problem_apps/TestProblem1.exe'
+		problem = Problem(prob_id, name, instructions, app_path)
+		self.problems.append(problem)
+
+		prob_id = 'prob1h'
+		name = 'First Test Problem (Hard)'
+		instructions = '''<div>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod 
+			tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
+			nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis 
+			aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat 
+			nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui 
+			officia deserunt mollit anim id est laborum.</div>
+			<br/>
+			<div><a href="prob1e">Easy version</a></div>
+			<div><a href="prob1m">Medium version</a></div>
+			<br/>
+			<div>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod 
+			tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
+			nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis 
+			aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat 
+			nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui 
+			officia deserunt mollit anim id est laborum.</div>'''
+		app_path = 'problem_apps/TestProblem1.exe'
+		problem = Problem(prob_id, name, instructions, app_path)
+		self.problems.append(problem)
+
+		prob_id = 'prob2'
+		name = 'Second Test Problem'
+		instructions = '''Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod 
+			tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
+			nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis 
+			aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat 
+			nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui 
+			officia deserunt mollit anim id est laborum.'''
+		app_path = 'problem_apps/TestProblem1.exe'
+		problem = Problem(prob_id, name, instructions, app_path)
+		self.problems.append(problem)
 		
-		# Read problems from storage
+		# TODO Read problems from storage
 	
 	def get_problem(self, prob_id):
 		for problem in self.problems:
@@ -35,8 +135,8 @@ class ProblemManager(object):
 				return problem
 		return None
 		
-	def record_attempt(self, prob_id, email, score):
-		attempt = ProblemAttempt(email, score)
+	def record_attempt(self, prob_id, output_filepath, teamname, score):
+		attempt = ProblemAttempt(output_filepath, teamname, score)
 		problem = self.get_problem(prob_id)
 		problem.attempts.append(attempt)
 		return attempt
@@ -49,29 +149,5 @@ class ProblemManager(object):
 		"""
 		score = subprocess.check_output([app_path, output_filepath])
 		return int(score)
-
-	@staticmethod
-	def get_highest_scoring_attempts(problem):
-		"""
-		Choose the highest scores for each player, then order the list by
-		score.
-		
-		Returns a list of ProblemAttempts ordered from highest to lowest (duplicate
-		attempts are considered so that only the highest attempt is considered).
-		"""
-		# Find the highest score for each player (email)
-		highest_scores = dict()  # Dict format (string:ProblemAttempt)
-		for attempt in problem.attempts:
-			# Ensure a baseline score for this player has been established
-			if attempt.email not in highest_scores.keys():
-				highest_scores[attempt.email] = ProblemAttempt('', 0)
-			
-			# See if this score is better that the previous highest
-			if attempt.score > highest_scores[attempt.email].score:
-				# New high score found
-				highest_scores[attempt.email] = attempt
-				
-		# Order the scores
-		return sorted(highest_scores.values(), key = lambda attempt: attempt.score, reverse=True)
 		
 		

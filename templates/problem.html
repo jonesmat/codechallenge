@@ -4,33 +4,31 @@
 
 {% block content %}
 	<h1>{{ problem.name }}</h1></div>
-	<div> {{ problem.instructions }} </div>
-	<br/>
+	<div> {{ problem.instructions|safe }} </div>
 	
-	<form class="pure-form pure-form-stacked" action="" method="post" enctype="multipart/form-data">
+	<!-- Buffer -->
+	<div style="height: 40px"></div>
+
+	<form class="pure-form" action="" method="post" enctype="multipart/form-data">
 		<fieldset>
-			<div style="margin-bottom: 15px;">
-				<label for="email">Email</label>	
-				<input id="email" type="email" name="email">
-			</div>
-				
-			<div style="margin-bottom: 15px;">
-				<label for="output_file">Output file</label>
-				<input id="output_file" type="file" name="output_file">
-			</div>
+			<legend>Submit Your Output</legend>
+
+			<input id="teamname" type="text" name="teamname" placeholder="Team Name" required>
+			<input id="output_file" type="file" name="output_file" required>
 			
 			<button type="submit" class="pure-button pure-button-primary">Submit</button>
 		</fieldset>
 	</form>
 	
-	<br>
+	<!-- Buffer -->
+	<div style="height: 20px"></div>
 	
 	<h2>Scores</h2>
 	<table class="pure-table pure-table-horizontal">
 		<thead>
 			<tr>
 				<th>#</th>
-				<th>Email</th>
+				<th>Team Name</th>
 				<th>Score</th>
 			</tr>
 		</thead>
@@ -39,7 +37,7 @@
 			{% for attempt in high_scoring_attempts %}
 			<tr>
 				<td>{{loop.index}}</td>
-				<td>{{ attempt.email }}</td>
+				<td>{{ attempt.teamname }}</td>
 				<td>{{ attempt.score }}</td>
 			</tr>
 			{% endfor %}
