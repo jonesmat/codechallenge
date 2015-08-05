@@ -7,40 +7,51 @@
 	<div> {{ puzzle.instructions|safe }} </div>
 	
 	<!-- Buffer -->
-	<div style="height: 40px"></div>
+	<div style="height: 30px"></div>
 
-	<form class="pure-form" action="" method="post" enctype="multipart/form-data">
-		<fieldset>
-			<legend>Submit Your Solution</legend>
+	<div class="problems">
+		{% for problem in puzzle.problems %}
+			<div class="problem">
+				<hr/>
 
-			<input id="teamname" type="text" name="teamname" placeholder="Team Name" required>
-			<input id="solution_file" type="file" name="solution_file" required>
-			
-			<button type="submit" class="pure-button pure-button-primary">Submit</button>
-		</fieldset>
-	</form>
-	
-	<!-- Buffer -->
-	<div style="height: 20px"></div>
-	
-	<h2>Scores</h2>
-	<table class="pure-table pure-table-horizontal">
-		<thead>
-			<tr>
-				<th>#</th>
-				<th>Team Name</th>
-				<th>Score</th>
-			</tr>
-		</thead>
-		
-		<tbody>
-			{% for attempt in high_scoring_attempts %}
-			<tr>
-				<td>{{loop.index}}</td>
-				<td>{{ attempt.teamname }}</td>
-				<td>{{ attempt.score }}</td>
-			</tr>
-			{% endfor %}
-		</tbody>
-	</ul>
-{% endblock %}
+				<form class="pure-form" action="" method="post" enctype="multipart/form-data">
+					<fieldset>
+						<legend><strong>{{ problem.name }}</strong> - {{ problem.description }}</legend>
+
+						<input style="display:none" id="prob_id" type="text" name="prob_id" value="{{ problem.prob_id }}">
+						<input id="teamname" type="text" name="teamname" placeholder="Team Name" required>
+						<input id="solution_file" type="file" name="solution_file" required>
+						
+						<button type="submit" class="pure-button pure-button-primary">Submit</button>
+					</fieldset>
+				</form>
+				
+				<!-- Buffer -->
+				<div style="height: 10px"></div>
+				
+				<table class="pure-table pure-table-horizontal">
+					<thead>
+						<tr>
+							<th>#</th>
+							<th>Team Name</th>
+							<th>Score</th>
+						</tr>
+					</thead>
+					
+					<tbody>
+						{% for attempt in problem.ordered_attempts %}
+						<tr>
+							<td>{{loop.index}}</td>
+							<td>{{ attempt.teamname }}</td>
+							<td>{{ attempt.score }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+
+				<!-- Buffer -->
+				<div style="height: 40px"></div>
+			</div>
+		{% endfor %}
+	</div>
+{% endblock content %}

@@ -1,16 +1,22 @@
-from flask import Flask, request, render_template, redirect
-from werkzeug import secure_filename
 import os
 from random import randint
 import uuid
-from puzzle import Puzzle, PuzzleManager
+
+from flask import Flask, request, render_template, redirect
+from werkzeug import secure_filename
+
+from model.puzzle_manager import PuzzleManager
+from model.puzzle import Puzzle
+from model.problem import Problem
+from model.problem_attempt import ProblemAttempt
 
 
 ########## Initialization ###########
 
+
 app = Flask(__name__, static_url_path="", static_folder = "content")
 
-probmgr = PuzzleManager() 
+puzzmgr = PuzzleManager() 
 
 
 ########## Routes ###########
@@ -18,24 +24,26 @@ probmgr = PuzzleManager()
 
 @app.route('/')
 def home():
-	return render_template('home.html', puzzles=probmgr.puzzles)
+	return render_template('home.html', puzzles=puzzmgr.puzzles)
 
 @app.route('/puzzle/<puzzle_id>', methods=['GET', 'POST'])
 def show_puzzle(puzzle_id):
 	if request.method == 'GET':
-		puzzle = probmgr.get_puzzle(puzzle_id)
+		puzzle = puzzmgr.get_puzzle(puzzle_id)
 		if puzzle is None:
 			assert False, 'Puzzle id does not exist!'
 			
-		high_scoring_attempts = puzzle.ordered_attempts
-		return render_template('puzzle.html', puzzle=puzzle, 
-								high_scoring_attempts=high_scoring_attempts)
+		return render_template('puzzle.html', puzzle=puzzle)
 		
 	else:
-		# Puzzle submission
-		
-		# Store the uploaded solution file
+		# Problem submission
+
+		# retrieve form data
+		prob_id = request.form['prob_id']
+		teamname = request.form['teamname']
 		solution_file = request.files['solution_file']  # Returns the actual File obj
+
+		# Store the uploaded solution file
 		solution_filepath = ''
 		if solution_file:
 			filename = secure_filename(solution_file.filename)
@@ -48,11 +56,13 @@ def show_puzzle(puzzle_id):
 			return redirect('/', code=302)
 
 		# Feed solution file to puzzle app
-		puzzle = probmgr.get_puzzle(puzzle_id)
-		score = probmgr.score_attempt(puzzle.app_path, solution_filepath)
+		puzzle = puzzmgr.get_puzzle(puzzle_id)
+		score = puzzmgr.score_attempt(puzzle.app_path, solution_filepath)
 		
 		# Record the attempt
-		attempt = probmgr.record_attempt(puzzle_id, solution_filepath, request.form['teamname'], score)
+		attempt = ProblemAttempt(solution_filepath, teamname, score)
+		problem = puzzle.get_problem(prob_id)
+		problem.attempts.append(attempt)
 		
 		return render_template('puzzle_submitted.html', puzzle_id=puzzle_id, attempt=attempt)
 	
