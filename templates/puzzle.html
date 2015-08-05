@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 
-{% block title %}CAPSHER Code Challenge - {{ problem.name }}{% endblock %}
+{% block title %}CAPSHER Code Challenge - {{ puzzle.name }}{% endblock %}
 
 {% block content %}
-	<h1>{{ problem.name }}</h1></div>
-	<div> {{ problem.instructions|safe }} </div>
+	<h1>{{ puzzle.name }}</h1></div>
+	<div> {{ puzzle.instructions|safe }} </div>
 	
 	<!-- Buffer -->
 	<div style="height: 40px"></div>
 
 	<form class="pure-form" action="" method="post" enctype="multipart/form-data">
 		<fieldset>
-			<legend>Submit Your Output</legend>
+			<legend>Submit Your Solution</legend>
 
 			<input id="teamname" type="text" name="teamname" placeholder="Team Name" required>
-			<input id="output_file" type="file" name="output_file" required>
+			<input id="solution_file" type="file" name="solution_file" required>
 			
 			<button type="submit" class="pure-button pure-button-primary">Submit</button>
 		</fieldset>

@@ -4,19 +4,19 @@
 
 {% block content %}
 	<div class="pure-menu">
-		<span class="pure-menu-heading">Pick a Problem to solve! </span>
+		<span class="pure-menu-heading">Pick a Puzzle to solve! </span>
 
 		<ul class="pure-menu-list">
-		{% for problem in problems %} 
+		{% for puzzle in puzzles %} 
 			<li class="pure-menu-item" style="margin-bottom: 20px">
 				<div style="margin-bottom: 5px">
-					<a href="/problem/{{ problem.prob_id }}">{{ problem.name }}</a>
+					<a href="/puzzle/{{ puzzle.puzzle_id }}">{{ puzzle.name }}</a>
 				</div>
 				<div>
 					<!-- Show the top scores (if there are any) -->
-					{% if problem.ordered_attempts|length > 0 %}
+					{% if puzzle.ordered_attempts|length > 0 %}
 						Top scores: 
-						{% for attempt in problem.ordered_attempts %} 
+						{% for attempt in puzzle.ordered_attempts %} 
 							<!-- Only show the first three top scores -->
 							{% if loop.index0 < 3 %}
 								{{ attempt.teamname }}({{ attempt.score }}) 

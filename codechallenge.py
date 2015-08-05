@@ -3,14 +3,14 @@ from werkzeug import secure_filename
 import os
 from random import randint
 import uuid
-from problem import Problem, ProblemManager
+from puzzle import Puzzle, PuzzleManager
 
 
 ########## Initialization ###########
 
 app = Flask(__name__, static_url_path="", static_folder = "content")
 
-probmgr = ProblemManager() 
+probmgr = PuzzleManager() 
 
 
 ########## Routes ###########
@@ -18,52 +18,52 @@ probmgr = ProblemManager()
 
 @app.route('/')
 def home():
-	return render_template('home.html', problems=probmgr.problems)
+	return render_template('home.html', puzzles=probmgr.puzzles)
 
-@app.route('/problem/<prob_id>', methods=['GET', 'POST'])
-def show_problem(prob_id):
+@app.route('/puzzle/<puzzle_id>', methods=['GET', 'POST'])
+def show_puzzle(puzzle_id):
 	if request.method == 'GET':
-		problem = probmgr.get_problem(prob_id)
-		if problem is None:
-			assert False, 'Problem id does not exist!'
+		puzzle = probmgr.get_puzzle(puzzle_id)
+		if puzzle is None:
+			assert False, 'Puzzle id does not exist!'
 			
-		high_scoring_attempts = problem.ordered_attempts
-		return render_template('problem.html', problem=problem, 
+		high_scoring_attempts = puzzle.ordered_attempts
+		return render_template('puzzle.html', puzzle=puzzle, 
 								high_scoring_attempts=high_scoring_attempts)
 		
 	else:
-		# Problem submission
+		# Puzzle submission
 		
-		# Store the uploaded output file
-		output_file = request.files['output_file']  # Returns the actual File obj
-		output_filepath = ''
-		if output_file:
-			filename = secure_filename(output_file.filename)
+		# Store the uploaded solution file
+		solution_file = request.files['solution_file']  # Returns the actual File obj
+		solution_filepath = ''
+		if solution_file:
+			filename = secure_filename(solution_file.filename)
 			filename += str(uuid.uuid1())
-			output_filepath = os.path.join(app.config['PROBLEM_OUTPUT_FOLDER'], 
+			solution_filepath = os.path.join(app.config['SOLUTION_FOLDER'], 
 				filename)
-			output_file.save(output_filepath)
+			solution_file.save(solution_filepath)
 		else:
-			# An output file is required, can't continue without it
+			# An solution file is required, can't continue without it
 			return redirect('/', code=302)
 
-		# Feed output file to problem app
-		problem = probmgr.get_problem(prob_id)
-		score = probmgr.score_attempt(problem.app_path, output_filepath)
+		# Feed solution file to puzzle app
+		puzzle = probmgr.get_puzzle(puzzle_id)
+		score = probmgr.score_attempt(puzzle.app_path, solution_filepath)
 		
 		# Record the attempt
-		attempt = probmgr.record_attempt(prob_id, output_filepath, request.form['teamname'], score)
+		attempt = probmgr.record_attempt(puzzle_id, solution_filepath, request.form['teamname'], score)
 		
-		return render_template('problem_submitted.html', prob_id=prob_id, attempt=attempt)
+		return render_template('puzzle_submitted.html', puzzle_id=puzzle_id, attempt=attempt)
 	
 
 
 ########## Main ###########
 
 if __name__ == '__main__':
-	app.config['PROBLEM_OUTPUT_FOLDER'] = 'problem_outputs/'
-	if not os.path.exists(app.config['PROBLEM_OUTPUT_FOLDER']):
-		os.makedirs(app.config['PROBLEM_OUTPUT_FOLDER'])
+	app.config['SOLUTION_FOLDER'] = 'solutions/'
+	if not os.path.exists(app.config['SOLUTION_FOLDER']):
+		os.makedirs(app.config['SOLUTION_FOLDER'])
 	
 	app.debug = True
 	app.run(host='0.0.0.0')
