@@ -3,7 +3,7 @@
 {% block title %}CAPSHER Code Challenge - {{ puzzle.name }}{% endblock %}
 
 {% block content %}
-	<h1>{{ puzzle.name }}</h1></div>
+	<h1>{{ puzzle.name }}</h1>
 	<div> {{ puzzle.instructions|safe }} </div>
 	
 	<!-- Buffer -->
@@ -19,7 +19,7 @@
 						<legend><strong>{{ problem.name }}</strong> - {{ problem.description }}</legend>
 
 						<input style="display:none" id="prob_id" type="text" name="prob_id" value="{{ problem.prob_id }}">
-						<input id="teamname" type="text" name="teamname" placeholder="Team Name" required>
+						<input id="teamname" type="text" name="teamname" placeholder="Team Name (max 15)" required>
 						<input id="solution_file" type="file" name="solution_file" required>
 						
 						<button type="submit" class="pure-button pure-button-primary">Submit</button>
@@ -39,7 +39,7 @@
 					</thead>
 					
 					<tbody>
-						{% for attempt in problem.ordered_attempts %}
+						{% for attempt in problem.get_best_attempts() %}
 						<tr>
 							<td>{{loop.index}}</td>
 							<td>{{ attempt.teamname }}</td>

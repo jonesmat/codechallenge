@@ -9,26 +9,48 @@ class Problem(object):
 
 		self.attempts = []  # list of ProblemAttempt
 
-	@property
-	def ordered_attempts(self):
+	def get_best_attempts(self):
 		"""
-		A property of a Problem that chooses the highest scores for each team, then orders the 
-		list by score.
-		
-		Returns a list of ProblemAttempts ordered from highest to lowest (distincly by teamname 
-		favoring the highest score).
+		Returns a list of best ProblemAttempts for each team ordered from highest to lowest.
 		"""
-		# Find the highest score for each player (teamname)
-		highest_scores = dict()  # Dict format (string:ProblemAttempt)
+		# Find the best attempt for each team
+		best_attempts = dict()  # Dict format (string:ProblemAttempt)
 		for attempt in self.attempts:
-			# Ensure a baseline score for this player has been established
-			if attempt.teamname not in highest_scores.keys():
-				highest_scores[attempt.teamname] = ProblemAttempt('', '', 0)
+			# Ensure a baseline attempt for this team has been established
+			if attempt.teamname not in best_attempts.keys():
+				best_attempts[attempt.teamname] = ProblemAttempt('', '', 0)
 			
-			# See if this score is better that the previous highest
-			if attempt.score > highest_scores[attempt.teamname].score:
-				# New high score found
-				highest_scores[attempt.teamname] = attempt
+			# See if this attempt has a higher score than the previous
+			if attempt.score > best_attempts[attempt.teamname].score:
+				# New best attempt found
+				best_attempts[attempt.teamname] = attempt
 				
-		# Order the scores
-		return sorted(highest_scores.values(), key = lambda attempt: attempt.score, reverse=True)
+		# Order the attempts by score (highest to lowest)
+		best_attempts = sorted(best_attempts.values(), key = lambda attempt: attempt.score, reverse=True)
+		return best_attempts
+
+	def get_team_points(self):
+		"""
+		Returns the points scored by each team on this problem (structed as a list of 
+		<teamname, points> pairs).
+
+		The highest scoring team will be awarded 10 points, the next 9 points, and so on.  The 11th
+		place team and lower will all receive 0 points.
+		"""
+		team_points_list = []
+		best_attempts = self.get_best_attempts()  # best attempts are assumed to be pre-sorted highest-to-lowest
+
+		points_at_position = 10  # Start with 10 points for the first position
+		for position, attempt in enumerate(best_attempts):
+			points_awarded = points_at_position
+
+			team_points_list.append( (attempt.teamname, points_awarded) )
+
+			# If the next score is the same as the current attempts score, grant them both the same
+			# amount of points for tying.  Otherwise, update the points at position.
+			if len(best_attempts) > (position + 1):
+				if best_attempts[position + 1].score != attempt.score:
+					points_at_position = max(10 - (position + 1), 0)				
+			
+		return team_points_list
+

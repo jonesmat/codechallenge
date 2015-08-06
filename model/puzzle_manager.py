@@ -1,7 +1,7 @@
 import subprocess
 from puzzle import Puzzle
 from problem import Problem
-		
+	
 
 class PuzzleManager(object):
 	def __init__(self):
@@ -32,7 +32,7 @@ class PuzzleManager(object):
 		problem_id = 'puzz1_easy'
 		prob_name = 'Easy'
 		prob_desc = 'An easier challege for the first test puzzle'
-		problem = Problem(problem_id, prob_name, prob_desc)
+		problem = Problem(problem_id, prob_name, prob_desc)	
 		puzzle.problems.append(problem)
 
 		problem_id = 'puzz1_med'
@@ -89,6 +89,24 @@ class PuzzleManager(object):
 				return puzzle
 		return None
 
+	def get_total_team_points(self):
+		"""
+		Returns a list of teams with their total points ordered from highest to lowest.
+		<teamname, points>
+		"""
+		team_point_totals_dict = dict()  
+		for puzzle in self.puzzles:
+			team_points_for_puzzle = puzzle.get_team_points()  # list of <points, teamname> pairs
+			for teamname, points in team_points_for_puzzle:
+				if teamname not in team_point_totals_dict.keys():
+					team_point_totals_dict[teamname] = 0
+				team_point_totals_dict[teamname] = team_point_totals_dict[teamname] + points
+		team_point_totals = team_point_totals_dict.items()
+
+		# Order the totals by points (highest to lowest)
+		team_point_totals = sorted(team_point_totals, key = lambda team_total: team_total[1], reverse=True)
+		return team_point_totals
+
 	@staticmethod
 	def score_attempt(app_path, solution_filepath):
 		"""
@@ -98,4 +116,4 @@ class PuzzleManager(object):
 		score = subprocess.check_output([app_path, solution_filepath])
 		return int(score)
 		
-		
+	

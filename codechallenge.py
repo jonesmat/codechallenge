@@ -24,7 +24,7 @@ puzzmgr = PuzzleManager()
 
 @app.route('/')
 def home():
-	return render_template('home.html', puzzles=puzzmgr.puzzles)
+	return render_template('home.html', puzzles=puzzmgr.puzzles, team_points_total=puzzmgr.get_total_team_points())
 
 @app.route('/puzzle/<puzzle_id>', methods=['GET', 'POST'])
 def show_puzzle(puzzle_id):
@@ -32,9 +32,8 @@ def show_puzzle(puzzle_id):
 		puzzle = puzzmgr.get_puzzle(puzzle_id)
 		if puzzle is None:
 			assert False, 'Puzzle id does not exist!'
-			
-		return render_template('puzzle.html', puzzle=puzzle)
-		
+
+		return render_template('puzzle.html', puzzle=puzzle, team_points_total=puzzmgr.get_total_team_points())
 	else:
 		# Problem submission
 
@@ -42,6 +41,11 @@ def show_puzzle(puzzle_id):
 		prob_id = request.form['prob_id']
 		teamname = request.form['teamname']
 		solution_file = request.files['solution_file']  # Returns the actual File obj
+
+		# Clean and truncate teamname to prevent abuse
+		teamname = teamname.strip()
+		if len(teamname) > 15:
+			teamname = teamname[0:12] + '...'
 
 		# Store the uploaded solution file
 		solution_filepath = ''
@@ -64,17 +68,41 @@ def show_puzzle(puzzle_id):
 		problem = puzzle.get_problem(prob_id)
 		problem.attempts.append(attempt)
 		
-		return render_template('puzzle_submitted.html', puzzle_id=puzzle_id, attempt=attempt)
+		return render_template('puzzle_submitted.html', puzzle_id=puzzle_id, attempt=attempt, team_points_total=puzzmgr.get_total_team_points())
+
+# Error handlers
+@app.errorhandler(403)
+def forbidden_request(error):
+	return render_template('error.html', error=error), 403
+
+@app.errorhandler(404)
+def page_not_found_request(error):
+	return render_template('error.html', error=error), 404
 	
+@app.errorhandler(410)
+def gone_request(error):
+	return render_template('error.html', error=error), 410
+	
+@app.errorhandler(413)
+def file_too_large_request(error):
+	return render_template('error.html', error=error), 413
+	
+@app.errorhandler(500)
+def internal_server_error_request(error):
+	return render_template('error.html', error=error), 500
+
 
 
 ########## Main ###########
 
 if __name__ == '__main__':
+	# Configure the app
 	app.config['SOLUTION_FOLDER'] = 'solutions/'
 	if not os.path.exists(app.config['SOLUTION_FOLDER']):
 		os.makedirs(app.config['SOLUTION_FOLDER'])
 	
+	app.config['MAX_CONTENT_LENGTH'] = 10 * 1024  # 10KB
+
 	app.debug = True
 	app.run(host='0.0.0.0')
 

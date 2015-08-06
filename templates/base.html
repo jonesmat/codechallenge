@@ -23,7 +23,37 @@
 			</div>
 		</div>
     </div>
-    <div id="content">{% block content %}{% endblock %}</div>
+
+    <div class="pure-g">
+        <div id="content" class="pure-u-16-24">{% block content %}{% endblock %}</div>
+        <div id="buffer" class="pure-u-1-24"></div>
+
+        <div id="scoreboard" class="pure-u-7-24">
+            <h2 style="text-align: center;">Scoreboard</h2>
+            <table class="pure-table pure-table-horizontal">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Team Name</th>
+                        <th>Total Points</th>
+                    </tr>
+                </thead>
+                
+                <tbody>
+                    {% for teamname, points_total in team_points_total %}
+                        {% if points_total > 0 %}
+                        <tr>
+                            <td>{{loop.index}}</td>
+                            <td>{{ teamname }}</td>
+                            <td>{{ points_total }}</td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
     <div id="footer">
     </div>
 </body>

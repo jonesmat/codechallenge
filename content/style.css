@@ -30,3 +30,10 @@ div.centered_item
     margin-right: -50%;
     transform: translate(-50%, -50%)
 }
+
+div#scoreboard
+{
+	border-left: thin solid lightgray;
+	padding-left: 5px;
+	margin-left: -10px;
+}
