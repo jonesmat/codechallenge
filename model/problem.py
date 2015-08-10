@@ -16,9 +16,13 @@ class Problem(object):
 		# Find the best attempt for each team
 		best_attempts = dict()  # Dict format (string:ProblemAttempt)
 		for attempt in self.attempts:
+			# Only consider attempts that are valid
+			if attempt.score < 0:
+				continue
+
 			# Ensure a baseline attempt for this team has been established
 			if attempt.teamname not in best_attempts.keys():
-				best_attempts[attempt.teamname] = ProblemAttempt('', '', 0)
+				best_attempts[attempt.teamname] = ProblemAttempt('', '', 0, '')
 			
 			# See if this attempt has a higher score than the previous
 			if attempt.score > best_attempts[attempt.teamname].score:

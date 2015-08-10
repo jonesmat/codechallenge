@@ -5,6 +5,14 @@
 {% endblock %}
 
 {% block content %}
-	<h2>You scored {{ attempt.score }}!</h2>
+	
+	{% if attempt.score >= 0 %}
+		<h2>You scored {{ attempt.score }}!</h2>
+	{% else %}
+		<h2>An error occured attempting to score your attempt.</h2>
+		<div>{{ attempt.error_msg }}</div>
+		<br/>
+	{% endif %}
+
 	<div><a href="/puzzle/{{ puzzle_id }}">Back to Puzzle</a></div>
 {% endblock %}

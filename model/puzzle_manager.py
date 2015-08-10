@@ -60,7 +60,7 @@ class PuzzleManager(object):
 			aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat 
 			nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui 
 			officia deserunt mollit anim id est laborum.'''
-		app_path = 'puzzle_apps/TestPuzzle1.exe'
+		app_path = 'puzzle_apps/TestPuzzle2.exe'
 		puzzle = Puzzle(puzzle_id, puzz_name, instructions, app_path)
 
 		problem_id = 'puzz2_easy'
@@ -111,9 +111,38 @@ class PuzzleManager(object):
 	def score_attempt(app_path, solution_filepath):
 		"""
 		Runs the puzzle's external application and passes the solution file as the
-		only parameter.  Stdout is returned from the app containing the score.
+		only parameter.  
+
+		This function returns the score and any stderr from the external app.
 		"""
-		score = subprocess.check_output([app_path, solution_filepath])
-		return int(score)
 		
+		# Execute the puzzle application and collect the output.
+		app_output = ''
+		try:
+			app_output = subprocess.check_output([app_path, solution_filepath], 
+				stderr=subprocess.STDOUT)
+		except subprocess.CalledProcessError as ex:
+			# The app returned a non-zero return code.  Build an error message and return it.
+			error_str = 'Command \'' + ' '.join(ex.cmd) + '\' failed with ' + str(ex.returncode) + \
+				' retcode. ' + ex.output
+			return (-1, error_str)
+
+		# At this point the app has returned successfully.  Attempt to pull a score from the output.
+
+		if len(app_output) == 0:
+			error_str = 'The problem app didn\'t return any data'
+			return (-1, error_str)
+
+		try:
+			# Try converting the output to an integer.  This indicates that a valid score was
+			# returned.
+			score = int(app_output)
+
+			# We have a score, return it.
+			return (score, '')
+		except ValueError as ex:
+			# The string output returned by the app wasn't an integer, it must have been an error.
+			error_str = app_output
+			return (-1, error_str)
+
 	

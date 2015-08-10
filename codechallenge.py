@@ -61,10 +61,10 @@ def show_puzzle(puzzle_id):
 
 		# Feed solution file to puzzle app
 		puzzle = puzzmgr.get_puzzle(puzzle_id)
-		score = puzzmgr.score_attempt(puzzle.app_path, solution_filepath)
+		score, error_msg = puzzmgr.score_attempt(puzzle.app_path, solution_filepath)
 		
 		# Record the attempt
-		attempt = ProblemAttempt(solution_filepath, teamname, score)
+		attempt = ProblemAttempt(solution_filepath, teamname, score, error_msg)
 		problem = puzzle.get_problem(prob_id)
 		problem.attempts.append(attempt)
 		
