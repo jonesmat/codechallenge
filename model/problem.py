@@ -2,10 +2,11 @@ from problem_attempt import ProblemAttempt
 
 
 class Problem(object):
-	def __init__(self, prob_id, name, description):
+	def __init__(self, prob_id, name, description, problem_file):
 		self.prob_id = prob_id
 		self.name = name
 		self.description = description
+		self.problem_file = problem_file
 
 		self.attempts = []  # list of ProblemAttempt
 

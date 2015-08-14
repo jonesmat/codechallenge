@@ -9,7 +9,7 @@
 	{% if attempt.score >= 0 %}
 		<h2>You scored {{ attempt.score }}!</h2>
 	{% else %}
-		<h2>An error occured attempting to score your attempt.</h2>
+		<h2>An error occured attempting to score your solution</h2>
 		<div>{{ attempt.error_msg }}</div>
 		<br/>
 	{% endif %}

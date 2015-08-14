@@ -59,13 +59,13 @@ def show_puzzle(puzzle_id):
 			# An solution file is required, can't continue without it
 			return redirect('/', code=302)
 
-		# Feed solution file to puzzle app
+		# Feed solution and problem files to puzzle app to score the attempt.
 		puzzle = puzzmgr.get_puzzle(puzzle_id)
-		score, error_msg = puzzmgr.score_attempt(puzzle.app_path, solution_filepath)
+		problem = puzzle.get_problem(prob_id)
+		score, error_msg = puzzmgr.score_attempt(puzzle.app_path, problem.problem_file, solution_filepath)
 		
 		# Record the attempt
 		attempt = ProblemAttempt(solution_filepath, teamname, score, error_msg)
-		problem = puzzle.get_problem(prob_id)
 		problem.attempts.append(attempt)
 		
 		return render_template('puzzle_submitted.html', puzzle_id=puzzle_id, attempt=attempt, team_points_total=puzzmgr.get_total_team_points())

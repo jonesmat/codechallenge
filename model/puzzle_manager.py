@@ -1,7 +1,20 @@
 import subprocess
 from puzzle import Puzzle
 from problem import Problem
-	
+
+
+'''
++----------+                                           
+| Problem  |                                           
+|  File    | +-------> +--------------+                
++----------+           |              |       +-------+
+                       |  Puzzle App  | +---> | Score |
++----------+           |              |       +-------+
+| Solution | +-------> +--------------+                
+|   File   |                                           
++----------+     
+'''
+
 
 class PuzzleManager(object):
 	def __init__(self):
@@ -26,25 +39,28 @@ class PuzzleManager(object):
 			aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat 
 			nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui 
 			officia deserunt mollit anim id est laborum.</div>'''
-		app_path = 'puzzle_apps/TestPuzzle1.exe'
+		app_path = 'puzzles/puzzle1/Puzzle1.exe'
 		puzzle = Puzzle(puzzle_id, puzz_name, instructions, app_path)
 
 		problem_id = 'puzz1_easy'
 		prob_name = 'Easy'
 		prob_desc = 'An easier challege for the first test puzzle'
-		problem = Problem(problem_id, prob_name, prob_desc)	
+		prob_file = 'puzzles/puzzle1/problem1.txt'
+		problem = Problem(problem_id, prob_name, prob_desc, prob_file)
 		puzzle.problems.append(problem)
 
 		problem_id = 'puzz1_med'
 		prob_name = 'Medium'
 		prob_desc = 'The average challege for the first test puzzle'
-		problem = Problem(problem_id, prob_name, prob_desc)
+		prob_file = 'puzzles/puzzle1/problem2.txt'
+		problem = Problem(problem_id, prob_name, prob_desc, prob_file)
 		puzzle.problems.append(problem)
 
 		problem_id = 'puzz1_hard'
 		prob_name = 'Hard'
 		prob_desc = 'A difficult challenge for the first test puzzle'
-		problem = Problem(problem_id, prob_name, prob_desc)
+		prob_file = 'puzzles/puzzle1/problem3.txt'
+		problem = Problem(problem_id, prob_name, prob_desc, prob_file)
 		puzzle.problems.append(problem)
 
 		self.puzzles.append(puzzle)
@@ -60,25 +76,28 @@ class PuzzleManager(object):
 			aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat 
 			nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui 
 			officia deserunt mollit anim id est laborum.'''
-		app_path = 'puzzle_apps/TestPuzzle2.exe'
+		app_path = 'puzzles/puzzle2/Puzzle2.exe'
 		puzzle = Puzzle(puzzle_id, puzz_name, instructions, app_path)
 
 		problem_id = 'puzz2_easy'
 		prob_name = 'Easy'
 		prob_desc = 'An easier challege for the first test puzzle'
-		problem = Problem(problem_id, prob_name, prob_desc)
+		prob_file = 'puzzles/puzzle2/problem1.txt'
+		problem = Problem(problem_id, prob_name, prob_desc, prob_file)
 		puzzle.problems.append(problem)
 
 		problem_id = 'puzz2_med'
 		prob_name = 'Medium'
 		prob_desc = 'The average challege for the first test puzzle'
-		problem = Problem(problem_id, prob_name, prob_desc)
+		prob_file = 'puzzles/puzzle2/problem2.txt'
+		problem = Problem(problem_id, prob_name, prob_desc, prob_file)
 		puzzle.problems.append(problem)
 
 		problem_id = 'puzz2_hard'
 		prob_name = 'Hard'
 		prob_desc = 'A difficult challenge for the first test puzzle'
-		problem = Problem(problem_id, prob_name, prob_desc)
+		prob_file = 'puzzles/puzzle2/problem3.txt'
+		problem = Problem(problem_id, prob_name, prob_desc, prob_file)
 		puzzle.problems.append(problem)
 
 		self.puzzles.append(puzzle)
@@ -108,10 +127,10 @@ class PuzzleManager(object):
 		return team_point_totals
 
 	@staticmethod
-	def score_attempt(app_path, solution_filepath):
+	def score_attempt(app_path, problem_filepath, solution_filepath):
 		"""
-		Runs the puzzle's external application and passes the solution file as the
-		only parameter.  
+		Runs the puzzle's external application and passes the problem file and the solution file as
+		commandline arguments.
 
 		This function returns the score and any stderr from the external app.
 		"""
@@ -119,7 +138,7 @@ class PuzzleManager(object):
 		# Execute the puzzle application and collect the output.
 		app_output = ''
 		try:
-			app_output = subprocess.check_output([app_path, solution_filepath], 
+			app_output = subprocess.check_output([app_path, problem_filepath, solution_filepath], 
 				stderr=subprocess.STDOUT)
 		except subprocess.CalledProcessError as ex:
 			# The app returned a non-zero return code.  Build an error message and return it.
