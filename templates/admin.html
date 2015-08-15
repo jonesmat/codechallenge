@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}CAPSHER Code Challenge - Admin{% endblock %}
+
+{% block content %}
+
+{% for puzzle in puzzmgr.puzzles %} 
+	<li class="pure-menu-item" style="margin-bottom: 20px">
+		<div style="margin-bottom: 5px">
+			<a href="/puzzle/{{ puzzle.puzzle_id }}">{{ puzzle.name }}</a>
+		</div>
+
+		<form class="pure-form" action="" method="post" enctype="multipart/form-data">
+			<input style="display:none" type="text" name="puzzle_id" value="{{ puzzle.puzzle_id }}">
+
+			<script>
+				function reset_alert()
+				{
+					return confirm('Resetting will clear all submissions.  Are you sure?');
+				}
+			</script>
+
+			{% if puzzle.state == "NEW" %}
+				<button class="pure-button pure-button-primary" name="open_puzzle">Open</button>
+				<button class="pure-button pure-button-disabled" name="close_puzzle">Close</button>
+				<button class="pure-button pure-button-disabled" name="reset_puzzle" >Reset</button>
+			{% elif puzzle.state == "OPEN" %}
+				<button class="pure-button pure-button-disabled" name="open_puzzle">Open</button>
+				<button class="pure-button pure-button-primary" name="close_puzzle">Close</button>
+				<button class="pure-button" name="reset_puzzle" onclick="return reset_alert();">Reset</button>
+			{% elif puzzle.state == "CLOSED" %}
+				<button class="pure-button" name="open_puzzle">Open</button>
+				<button class="pure-button pure-button-disabled" name="close_puzzle">Close</button>
+				<button class="pure-button" name="reset_puzzle" onclick="return reset_alert();">Reset</button>
+			{% endif %}
+		</form>
+	</li>
+{% endfor %}
+
+{% endblock %}

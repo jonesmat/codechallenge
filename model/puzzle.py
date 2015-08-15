@@ -8,6 +8,7 @@ class Puzzle(object):
 		self.instructions = instructions
 		self.app_path = app_path
 		self.problems = []
+		self.state = PuzzleState.NEW
 	
 	def get_problem(self, prob_id):
 		for problem in self.problems:
@@ -33,3 +34,14 @@ class Puzzle(object):
 		# Order the totals by points (highest to lowest)
 		team_points_list = sorted(team_points_list, key = lambda team_total: team_total[1], reverse=True)
 		return team_points_list
+
+	def reset(self):
+		for problem in self.problems:
+			problem.attempts = []
+		self.state = PuzzleState.NEW
+
+
+class PuzzleState(object):
+	NEW 		= "NEW"
+	OPEN 		= "OPEN"
+	CLOSED 		= "CLOSED"
