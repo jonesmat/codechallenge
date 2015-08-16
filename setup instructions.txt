@@ -1,0 +1,7 @@
+1) Download and install the latest python 2.7.
+2) Install Flask
+	In a cmd prompt: "python -m pip install Flask"
+3) Install OAuth2
+	In a cmd prompt: "python -m pip install --upgrade oauth2client"
+4) Install PyOpenSSL
+	In a cmd prompt: "python -m pip install PyOpenSSL"

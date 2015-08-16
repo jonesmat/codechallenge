@@ -1,1 +1,1 @@
-c:\python27\python.exe codechallenge.py
+c:\python27\python.exe main.py

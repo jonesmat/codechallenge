@@ -17,91 +17,39 @@ from problem import Problem
 
 
 class PuzzleManager(object):
-	def __init__(self):
-		# Initialize list of puzzles
+	def __init__(self, data_mgr):
 		self.puzzles = []
+		self.data_mgr = data_mgr
 
-		############################################################################################
-		##################################### First Test Puzzle ####################################
-		############################################################################################
-		puzzle_id = 'puzz1'
-		puzz_name = 'First Test Puzzle'
-		instructions = '''<div>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod 
-			tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
-			nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis 
-			aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat 
-			nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui 
-			officia deserunt mollit anim id est laborum.</div>
-			<br/>
-			<div>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod 
-			tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
-			nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis 
-			aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat 
-			nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui 
-			officia deserunt mollit anim id est laborum.</div>'''
-		app_path = 'puzzles/puzzle1/Puzzle1.exe'
-		puzzle = Puzzle(puzzle_id, puzz_name, instructions, app_path)
+	def load(self):
+		puzzles_data = self.data_mgr.get_puzzles_data()
 
-		problem_id = 'puzz1_easy'
-		prob_name = 'Easy'
-		prob_desc = 'An easier challege for the first test puzzle'
-		prob_file = 'puzzles/puzzle1/problem1.txt'
-		problem = Problem(problem_id, prob_name, prob_desc, prob_file)
-		puzzle.problems.append(problem)
+		# Load puzzles
+		for puzzle_data in puzzles_data:
+			puzzle = Puzzle(self.data_mgr)
+			puzzle.load(puzzle_data)
 
-		problem_id = 'puzz1_med'
-		prob_name = 'Medium'
-		prob_desc = 'The average challege for the first test puzzle'
-		prob_file = 'puzzles/puzzle1/problem2.txt'
-		problem = Problem(problem_id, prob_name, prob_desc, prob_file)
-		puzzle.problems.append(problem)
-
-		problem_id = 'puzz1_hard'
-		prob_name = 'Hard'
-		prob_desc = 'A difficult challenge for the first test puzzle'
-		prob_file = 'puzzles/puzzle1/problem3.txt'
-		problem = Problem(problem_id, prob_name, prob_desc, prob_file)
-		puzzle.problems.append(problem)
-
-		self.puzzles.append(puzzle)
-
-		############################################################################################
-		##################################### Second Test Puzzle ####################################
-		############################################################################################
-		puzzle_id = 'puzz2'
-		puzz_name = 'Second Test Puzzle'
-		instructions = '''Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod 
-			tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
-			nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis 
-			aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat 
-			nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui 
-			officia deserunt mollit anim id est laborum.'''
-		app_path = 'puzzles/puzzle2/Puzzle2.exe'
-		puzzle = Puzzle(puzzle_id, puzz_name, instructions, app_path)
-
-		problem_id = 'puzz2_easy'
-		prob_name = 'Easy'
-		prob_desc = 'An easier challege for the first test puzzle'
-		prob_file = 'puzzles/puzzle2/problem1.txt'
-		problem = Problem(problem_id, prob_name, prob_desc, prob_file)
-		puzzle.problems.append(problem)
-
-		problem_id = 'puzz2_med'
-		prob_name = 'Medium'
-		prob_desc = 'The average challege for the first test puzzle'
-		prob_file = 'puzzles/puzzle2/problem2.txt'
-		problem = Problem(problem_id, prob_name, prob_desc, prob_file)
-		puzzle.problems.append(problem)
-
-		problem_id = 'puzz2_hard'
-		prob_name = 'Hard'
-		prob_desc = 'A difficult challenge for the first test puzzle'
-		prob_file = 'puzzles/puzzle2/problem3.txt'
-		problem = Problem(problem_id, prob_name, prob_desc, prob_file)
-		puzzle.problems.append(problem)
-
-		self.puzzles.append(puzzle)
+			self.puzzles.append(puzzle)
 	
+	def save(self):
+		# Save Puzzles
+		puzzles_data = []
+		for puzzle in self.puzzles:
+			puzzles_data.append([puzzle.puzzle_id, puzzle.name, puzzle.instructions, 
+								 puzzle.app_path, puzzle.state])
+		self.data_mgr.save_puzzles_data(puzzles_data)
+
+		# TODO Save Problems
+
+		# Save Problem Attempts
+		attempts_data = []
+		for puzzle in self.puzzles:
+			for problem in puzzle.problems:
+				for attempt in problem.attempts:
+					attempts_data.append([problem.prob_id, attempt.teamname, attempt.score, 
+											attempt.timestamp, attempt.solution_filepath])
+		self.data_mgr.save_attempts_data(attempts_data)
+
 	def get_puzzle(self, puzzle_id):
 		for puzzle in self.puzzles:
 			if puzzle.puzzle_id == puzzle_id:

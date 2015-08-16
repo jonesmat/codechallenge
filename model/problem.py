@@ -2,13 +2,36 @@ from problem_attempt import ProblemAttempt
 
 
 class Problem(object):
-	def __init__(self, prob_id, name, description, problem_file):
-		self.prob_id = prob_id
-		self.name = name
-		self.description = description
-		self.problem_file = problem_file
-
+	def __init__(self, data_mgr):
+		self.data_mgr = data_mgr
 		self.attempts = []  # list of ProblemAttempt
+
+		self.prob_id = ''
+		self.name = ''
+		self.description = ''
+		self.problem_file = ''
+	
+	def load(self, data):
+		'''
+		Check how the DataManager loads problem data if there is an issue here.
+		'''
+		# data[0] stores the puzzle id, which isn't needed here
+		self.prob_id = data[1]
+		self.name = data[2]
+		self.description = data[3]
+		self.problem_file = data[4]
+
+		# Load problem attempts
+		attempts_data = self.data_mgr.get_attempts_data()
+		for attempt_data in attempts_data:
+			attempt_problem_id = attempt_data[0]
+
+			# Make sure this attempt is intended for this problem
+			if attempt_problem_id == self.prob_id:
+				attempt = ProblemAttempt()
+				attempt.load(attempt_data)
+				
+				self.attempts.append(attempt)
 
 	def get_best_attempts(self):
 		"""
@@ -23,7 +46,7 @@ class Problem(object):
 
 			# Ensure a baseline attempt for this team has been established
 			if attempt.teamname not in best_attempts.keys():
-				best_attempts[attempt.teamname] = ProblemAttempt('', '', 0, '')
+				best_attempts[attempt.teamname] = ProblemAttempt()
 			
 			# See if this attempt has a higher score than the previous
 			if attempt.score > best_attempts[attempt.teamname].score:

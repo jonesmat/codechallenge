@@ -3,8 +3,14 @@
 class ProblemAttempt(object):
 	''' Represents an attempt at solving a problem on a puzzle '''
 	
-	def __init__(self, solution_filepath, teamname, score, error_msg):
-		self.solution_filepath = solution_filepath
-		self.teamname = teamname
-		self.score = score  # Greater than or equal to 0 if an error didn't occur
-		self.error_msg = error_msg  # An error that may have occured when scoring the attempt
+	def __init__(self):
+		self.teamname = ''
+		self.score = 0
+		self.timestamp = ''
+		self.solution_filepath = ''
+
+	def load(self, data):
+		self.teamname = data[1]
+		self.score = int(data[2])
+		self.timestamp = data[3]
+		self.solution_filepath = data[4]

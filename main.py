@@ -1,10 +1,12 @@
 import os
 from random import randint
 import uuid
+from time import gmtime, strftime
 
 from flask import Flask, request, render_template, redirect
 from werkzeug import secure_filename
 
+from data_manager import DataManager
 from model.puzzle_manager import PuzzleManager
 from model.puzzle import Puzzle, PuzzleState
 from model.problem import Problem
@@ -16,7 +18,10 @@ from model.problem_attempt import ProblemAttempt
 
 app = Flask(__name__, static_url_path="", static_folder = "content")
 
-puzzmgr = PuzzleManager() 
+datamgr = DataManager('CodeChallenge-0fc1883d1a1c.json')
+
+puzzmgr = PuzzleManager(datamgr) 
+puzzmgr.load()
 
 ADMIN_PASSWORD = 'puzzles'
 
@@ -77,16 +82,27 @@ def show_puzzle(puzzle_id):
 		score, error_msg = puzzmgr.score_attempt(puzzle.app_path, problem.problem_file, solution_filepath)
 		
 		# Record the attempt
-		attempt = ProblemAttempt(solution_filepath, teamname, score, error_msg)
-		problem.attempts.append(attempt)
+		if score > 0:
+			attempt = ProblemAttempt()
+			attempt.teamname = teamname
+			attempt.score = score
+			attempt.timestamp = strftime("%Y-%m-%d %H:%M:%S")
+			attempt.solution_filepath = solution_filepath
+			problem.attempts.append(attempt)
+
+			puzzmgr.save()  # Data changed, lets save it.
+		else:
+			pass  # TODO log it
 		
-		return render_template('puzzle_submitted.html', puzzle_id=puzzle_id, attempt=attempt, team_points_total=puzzmgr.get_total_team_points())
+		return render_template('puzzle_submitted.html', puzzle_id=puzzle_id, attempt=attempt, 
+								team_points_total=puzzmgr.get_total_team_points(), error_msg=error_msg)
 
 
 @app.route('/admin', methods=['GET', 'POST'])
 def show_admin():
 	if request.method == 'GET':
-		return render_template('login.html')
+		return render_template('login.html', 
+								team_points_total=puzzmgr.get_total_team_points())
 	else:
 		
 		if 'passcode' in request.form:
@@ -94,9 +110,11 @@ def show_admin():
 			passcode = request.form['passcode']
 
 			if passcode == ADMIN_PASSWORD:
-				return render_template('admin.html', puzzmgr=puzzmgr)
+				return render_template('admin.html', puzzmgr=puzzmgr, 
+										team_points_total=puzzmgr.get_total_team_points())
 			else:
-				return render_template('login.html')
+				return render_template('login.html', 
+										team_points_total=puzzmgr.get_total_team_points())
 		elif 'puzzle_id' in request.form:
 			# Admin is updating a puzzle
 
@@ -111,8 +129,11 @@ def show_admin():
 			elif 'reset_puzzle' in request.form and puzzle.state != PuzzleState.NEW:
 				puzzle.reset()
 
+			puzzmgr.save()  # Data changed, save it
+
 			# Return to the admin page after updating the puzzle
-			return render_template('admin.html', puzzmgr=puzzmgr)
+			return render_template('admin.html', puzzmgr=puzzmgr, 
+									team_points_total=puzzmgr.get_total_team_points())
 
 
 # Error handlers
