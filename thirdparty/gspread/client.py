@@ -75,7 +75,7 @@ class Client(object):
     def _add_xml_header(self, data):
         return "<?xml version='1.0' encoding='UTF-8'?>%s" % data.decode()
 
-    def login(self):
+    def login(self, http = None):
         """Authorize client using ClientLogin protocol.
 
         The credentials provided in `auth` parameter to class' constructor will be used.
@@ -92,9 +92,10 @@ class Client(object):
         if hasattr(self.auth, 'access_token'):
             if not self.auth.access_token or \
                     (hasattr(self.auth, 'access_token_expired') and self.auth.access_token_expired):
-                import httplib2
+                if not http:
+                    import httplib2
 
-                http = httplib2.Http()
+                    http = httplib2.Http()
                 self.auth.refresh(http)
 
             self.session.add_header('Authorization', "Bearer " + self.auth.access_token)
@@ -320,7 +321,7 @@ def login(email, password):
     client.login()
     return client
 
-def authorize(credentials):
+def authorize(credentials, http=None):
     """Login to Google API using OAuth2 credentials.
 
     This is a shortcut function which instantiates :class:`Client`
@@ -330,5 +331,5 @@ def authorize(credentials):
 
     """
     client = Client(auth=credentials)
-    client.login()
+    client.login(http)
     return client
