@@ -19,9 +19,34 @@ class DataManager(object):
 		json_key = json.load(open(oauth2_cred_filepath))
 		scope = ['https://spreadsheets.google.com/feeds']
 		credentials = SignedJwtAssertionCredentials(json_key['client_email'], json_key['private_key'], scope)
+		
+		# Disable host checking because Windows has problems reading from CA cert path when running in IIS
+		import ssl
+		def no_default_cert_create_default_https_context(purpose=ssl.Purpose.SERVER_AUTH, cafile=None,
+                           capath=None, cadata=None):
+			if not isinstance(purpose, ssl._ASN1Object):
+				raise TypeError(purpose)
 
+			context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+
+			# SSLv2 considered harmful.
+			context.options |= ssl.OP_NO_SSLv2
+
+			# SSLv3 has problematic security and is only required for really old
+			# clients such as IE6 on Windows XP
+			context.options |= ssl.OP_NO_SSLv3
+
+			# disable compression to prevent CRIME attacks (OpenSSL 1.0+)
+			context.options |= getattr(ssl._ssl, "OP_NO_COMPRESSION", 0)
+			return context
+			
+		
+		ssl._create_default_https_context = no_default_cert_create_default_https_context
+		import httplib2
+		http = httplib2.Http( disable_ssl_certificate_validation = True )
+		
 		# Login with your Google account
-		gc = gspread.authorize(credentials)
+		gc = gspread.authorize(credentials, http)
 
 		# open the spreadsheet by its url
 		spreadsheet = gc.open_by_url('https://docs.google.com/spreadsheets/d/1PmHHHjyvoSg-erK_CvMmKCtYsezHOGHvoUu6EiZWutM/edit#gid=0')
