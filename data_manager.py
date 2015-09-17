@@ -14,7 +14,7 @@ class DataManager(object):
 	https://github.com/burnash/gspread
 	'''
 
-	def __init__(self, oauth2_cred_filepath):
+	def __init__(self, oauth2_cred_filepath, spreadsheet_url):
 		# Create an OAuth2 credential object for accessing the google doc
 		json_key = json.load(open(oauth2_cred_filepath))
 		scope = ['https://spreadsheets.google.com/feeds']
@@ -49,78 +49,104 @@ class DataManager(object):
 		gc = gspread.authorize(credentials, http)
 
 		# open the spreadsheet by its url
-		spreadsheet = gc.open_by_url('https://docs.google.com/spreadsheets/d/1PmHHHjyvoSg-erK_CvMmKCtYsezHOGHvoUu6EiZWutM/edit#gid=0')
+		spreadsheet = gc.open_by_url(spreadsheet_url)
 
 		# Get the worksheets by name
 		self.puzzles_worksheet = spreadsheet.worksheet("Puzzles")
 		self.problems_worksheet = spreadsheet.worksheet("Problems")
 		self.attempts_worksheet = spreadsheet.worksheet("Attempts")
 
-	def get_puzzles_data(self):
-		'''
-			Returns raw puzzle data in the following format:
+		# Initialize data storage
+		self.puzzles_data = []
+		self.problems_data = []
+		self.attempts_data = []
 
-			[ [ Id, Name, Instructions, App path ], ... ]
-		'''
-		puzzles_data = self.puzzles_worksheet.get_all_values()
+	def load(self):
+		# Init data before loading
+		self.puzzles_data = []
+		self.problems_data = []
+		self.attempts_data = []
 
-		if puzzles_data is None or len(puzzles_data) == 0:
+		#########################################################
+		##################### LOAD PUZZLES ######################
+		#########################################################
+		self.puzzles_data = self.puzzles_worksheet.get_all_values()
+
+		if self.puzzles_data is None or len(self.puzzles_data) == 0:
 			assert('Unable to load puzzle data')
 
 		# gspread will return ALL rows in the worksheet, even empty ones.
 		# Remove the empty rows
 		temp_puzzles_data = []
-		for puzzle_data in puzzles_data:
+		for puzzle_data in self.puzzles_data:
 			if puzzle_data[0] is not None and len(puzzle_data[0]) > 0:
 				temp_puzzles_data.append(puzzle_data)
-		puzzles_data = temp_puzzles_data
+		self.puzzles_data = temp_puzzles_data
 
-		# Return all rows except the first (its a header row)
-		return puzzles_data[1:]
+		# Remove the header row
+		self.puzzles_data.pop(0)
 
-	def get_problems_data(self):
-		'''
-			Returns raw problem data in the following format:
+		
+		#########################################################
+		##################### LOAD PROBLEMS #####################
+		#########################################################
+		self.problems_data = self.problems_worksheet.get_all_values()
 
-			[ [ Puzzle Id, Problem Id, Name, Description, Problem Filepath ], ... ]
-		'''
-		problems_data = self.problems_worksheet.get_all_values()
-
-		if problems_data is None or len(problems_data) == 0:
+		if self.problems_data is None or len(self.problems_data) == 0:
 			assert('Unable to load problem data')
 
 		# gspread will return ALL rows in the worksheet, even empty ones.
 		# Remove the empty rows
 		temp_problems_data = []
-		for problem_data in problems_data:
+		for problem_data in self.problems_data:
 			if problem_data[0] is not None and len(problem_data[0]) > 0:
 				temp_problems_data.append(problem_data)
-		problems_data = temp_problems_data
+		self.problems_data = temp_problems_data
 
-		# Return all rows except the first (its a header row)
-		return problems_data[1:]
+		# Remove the header row
+		self.problems_data.pop(0)
 
-	def get_attempts_data(self):
-		'''
-			Returns raw problem attempt data in the following format:
+		
+		#########################################################
+		##################### LOAD ATTEMPTS ######################
+		#########################################################
+		self.attempts_data = self.attempts_worksheet.get_all_values()
 
-			[ [ Problem Id, TeamName, Score, Timestamp, Solution Filepath ], ... ]
-		'''
-		attempts_data = self.attempts_worksheet.get_all_values()
-
-		if attempts_data is None or len(attempts_data) == 0:
+		if self.attempts_data is None or len(self.attempts_data) == 0:
 			assert('Unable to load problem data')
 
 		# gspread will return ALL rows in the worksheet, even empty ones.
 		# Remove the empty rows
 		temp_attempts_data = []
-		for attempt_data in attempts_data:
+		for attempt_data in self.attempts_data:
 			if attempt_data[0] is not None and len(attempt_data[0]) > 0:
 				temp_attempts_data.append(attempt_data)
-		attempts_data = temp_attempts_data
+		self.attempts_data = temp_attempts_data
 
-		# Return all rows except the first (its a header row)
-		return attempts_data[1:]
+		# Remove the header row
+		self.attempts_data.pop(0)
+
+	def get_puzzles_data(self):
+		'''
+			Puzzle data in the following format:
+			[ [ Id, Name, Instructions, App path ], ... ]
+		'''
+		return self.puzzles_data
+
+	def get_problems_data(self, puzzle_id):
+		'''
+			Problem data in the following format:
+			[ [ Puzzle Id, Problem Id, Name, Description, Problem Filepath ], ... ]
+		'''
+		# Return only the problems for the specified puzzle_id
+		return [problem for problem in self.problems_data if problem[0] == puzzle_id]
+
+	def get_attempts_data(self, problem_id):
+		'''
+			Problem attempt data in the following format:
+			[ [ Problem Id, TeamName, Score, Timestamp, Timedata, Solution Filepath ], ... ]
+		'''
+		return [attempt for attempt in self.attempts_data if attempt[0] == problem_id]
 
 	def save_puzzles_data(self, puzzles_data):
 		'''
@@ -130,13 +156,28 @@ class DataManager(object):
 		*** This is not an atomic save, in the event of a problem with saving
 		use google's revision history feature to recover. ***
 		'''
-
 		# Clear all data to make room for the save
-		self.puzzles_worksheet.resize(1, 5)  # resizes to 1 row and 5 columns
+		columns = 5
+		self.puzzles_worksheet.resize(1, columns)  # resizes to a header row and 5 columns
 
-		# Save rows one by one (not the most efficent way, but I don't care...)
+		# Now that the data has been cleared, resize to the number of puzzles
+		last_row = len(puzzles_data) + 1
+		self.puzzles_worksheet.resize(last_row, columns)
+
+		# Grab the cells so we can populate them
+		cell_list = self.puzzles_worksheet.range('A2:E%d' % last_row)
+
+		# Example cell_list format for a range of A1:C3:
+		# [Cell_A1, Cell_A2, Cell_A3, Cell_B1, Cell_B2, Cell_B3, Cell_C1, Cell_C2, Cell_C3]
+
+		# Now that we have the cells from the range, update the cell values with the data.
+		cell_index = 0
 		for puzzle_data in puzzles_data:
-			self.puzzles_worksheet.append_row(puzzle_data)
+			for column in range(0, columns):
+				cell_list[cell_index].value = puzzle_data[column]
+				cell_index = cell_index + 1
+
+		self.puzzles_worksheet.update_cells(cell_list)
 
 	def save_attempts_data(self, attempts_data):
 		'''
@@ -146,10 +187,26 @@ class DataManager(object):
 		*** This is not an atomic save, in the event of a problem with saving
 		use google's revision history feature to recover. ***
 		'''
-
 		# Clear all data to make room for the save
-		self.attempts_worksheet.resize(1, 5)  # resizes to 1 row and 5 columns
+		columns = 6
+		self.attempts_worksheet.resize(1, columns)  # resizes to a header row and 6 columns
 
-		# Save rows one by one (not the most efficent way, but I don't care...)
+		# Now that the data has been cleared, resize to the number of attempts
+		last_row = len(attempts_data) + 1
+		self.attempts_worksheet.resize(last_row, columns)
+
+		# Grab the cells so we can populate them
+		cell_list = self.attempts_worksheet.range('A2:F%d' % last_row)
+
+		# Example cell_list format for a range of A1:C3:
+		# [Cell_A1, Cell_A2, Cell_A3, Cell_B1, Cell_B2, Cell_B3, Cell_C1, Cell_C2, Cell_C3]
+
+		# Now that we have the cells from the range, update the cell values with the data.
+		cell_index = 0
 		for attempt_data in attempts_data:
-			self.attempts_worksheet.append_row(attempt_data)
+			for column in range(0, columns):
+				cell_list[cell_index].value = attempt_data[column]
+				cell_index = cell_index + 1
+
+		self.attempts_worksheet.update_cells(cell_list)
+		

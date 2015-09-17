@@ -1,7 +1,7 @@
 import os
 from random import randint
 import uuid
-from time import gmtime, strftime
+import time
 
 from flask import Flask, request, render_template, redirect
 from werkzeug import secure_filename
@@ -18,7 +18,8 @@ from model.problem_attempt import ProblemAttempt
 
 app = Flask(__name__, static_url_path="", static_folder = "content")
 
-datamgr = DataManager('CodeChallenge-0fc1883d1a1c.json')
+datamgr = DataManager('CodeChallenge-0fc1883d1a1c.json', 'https://docs.google.com/spreadsheets/d/1PmHHHjyvoSg-erK_CvMmKCtYsezHOGHvoUu6EiZWutM/edit#gid=0')
+datamgr.load()
 
 puzzmgr = PuzzleManager(datamgr) 
 puzzmgr.load()
@@ -82,11 +83,13 @@ def show_puzzle(puzzle_id):
 		score, error_msg = puzzmgr.score_attempt(puzzle.app_path, problem.problem_file, solution_filepath)
 		
 		# Record the attempt
+		attempt = ProblemAttempt()
+		attempt.teamname = teamname
+		attempt.score = -1  # -1 indicates an error
 		if score > 0:
-			attempt = ProblemAttempt()
-			attempt.teamname = teamname
 			attempt.score = score
-			attempt.timestamp = strftime("%Y-%m-%d %H:%M:%S")
+			attempt.timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+			attempt.timedata = time.time()
 			attempt.solution_filepath = solution_filepath
 			problem.attempts.append(attempt)
 
@@ -134,6 +137,14 @@ def show_admin():
 			# Return to the admin page after updating the puzzle
 			return render_template('admin.html', puzzmgr=puzzmgr, 
 									team_points_total=puzzmgr.get_total_team_points())
+		elif 'reload_data' in request.form:
+			# Admin is requesting a data reload
+			datamgr.load()
+			puzzmgr.load()
+
+			# Reload the admin page
+			return render_template('admin.html', puzzmgr=puzzmgr, 
+										team_points_total=puzzmgr.get_total_team_points())
 
 
 # Error handlers

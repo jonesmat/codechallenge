@@ -1,3 +1,4 @@
+from time import strptime
 from problem_attempt import ProblemAttempt
 
 
@@ -22,16 +23,12 @@ class Problem(object):
 		self.problem_file = data[4]
 
 		# Load problem attempts
-		attempts_data = self.data_mgr.get_attempts_data()
+		attempts_data = self.data_mgr.get_attempts_data(self.prob_id)
 		for attempt_data in attempts_data:
-			attempt_problem_id = attempt_data[0]
-
-			# Make sure this attempt is intended for this problem
-			if attempt_problem_id == self.prob_id:
-				attempt = ProblemAttempt()
-				attempt.load(attempt_data)
+			attempt = ProblemAttempt()
+			attempt.load(attempt_data)
 				
-				self.attempts.append(attempt)
+			self.attempts.append(attempt)
 
 	def get_best_attempts(self):
 		"""
@@ -54,7 +51,8 @@ class Problem(object):
 				best_attempts[attempt.teamname] = attempt
 				
 		# Order the attempts by score (highest to lowest)
-		best_attempts = sorted(best_attempts.values(), key = lambda attempt: attempt.score, reverse=True)
+		best_attempts = sorted(best_attempts.values(), key = lambda attempt: \
+			(attempt.score, attempt.timedata), reverse=False)
 		return best_attempts
 
 	def get_team_points(self):
@@ -68,17 +66,10 @@ class Problem(object):
 		team_points_list = []
 		best_attempts = self.get_best_attempts()  # best attempts are assumed to be pre-sorted highest-to-lowest
 
-		points_at_position = 10  # Start with 10 points for the first position
+		first_place_points = 10  # Start with 10 points for the first position
 		for position, attempt in enumerate(best_attempts):
-			points_awarded = points_at_position
-
+			points_awarded = max(first_place_points - position, 0)
 			team_points_list.append( (attempt.teamname, points_awarded) )
-
-			# If the next score is the same as the current attempts score, grant them both the same
-			# amount of points for tying.  Otherwise, update the points at position.
-			if len(best_attempts) > (position + 1):
-				if best_attempts[position + 1].score != attempt.score:
-					points_at_position = max(10 - (position + 1), 0)				
 			
 		return team_points_list
 

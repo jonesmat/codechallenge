@@ -24,16 +24,12 @@ class Puzzle(object):
 		self.state = puzzle_data[4]
 
 		# Load problems
-		problems_data = self.data_mgr.get_problems_data()
+		problems_data = self.data_mgr.get_problems_data(self.puzzle_id)
 		for problem_data in problems_data:
-			problem_puzzle_id = problem_data[0]
-
-			# Make sure this problem is intended for this puzzle
-			if problem_puzzle_id == self.puzzle_id:
-				problem = Problem(self.data_mgr)
-				problem.load(problem_data)
-
-				self.problems.append(problem)
+			problem = Problem(self.data_mgr)
+			problem.load(problem_data)
+			
+			self.problems.append(problem)
 					
 
 	def get_problem(self, prob_id):

@@ -4,6 +4,24 @@
 
 {% block content %}
 
+<div>
+
+	<script>
+		function reload_data_alert()
+		{
+			return confirm('Are you sure you want to reload the site data?');
+		}
+	</script>
+
+	<form class="pure-form" action="" method="post" enctype="multipart/form-data">
+		<button class="pure-button" name="reload_data" onclick="return reload_data_alert();">
+			Reload Data
+		</button>
+	</form>
+</div>
+
+<br/>
+
 {% for puzzle in puzzmgr.puzzles %} 
 	<li class="pure-menu-item" style="margin-bottom: 20px">
 		<div style="margin-bottom: 5px">

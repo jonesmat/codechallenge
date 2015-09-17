@@ -22,9 +22,11 @@ class PuzzleManager(object):
 		self.data_mgr = data_mgr
 
 	def load(self):
-		puzzles_data = self.data_mgr.get_puzzles_data()
+		# init data before loading
+		self.puzzles = []
 
 		# Load puzzles
+		puzzles_data = self.data_mgr.get_puzzles_data()
 		for puzzle_data in puzzles_data:
 			puzzle = Puzzle(self.data_mgr)
 			puzzle.load(puzzle_data)
@@ -47,7 +49,8 @@ class PuzzleManager(object):
 			for problem in puzzle.problems:
 				for attempt in problem.attempts:
 					attempts_data.append([problem.prob_id, attempt.teamname, attempt.score, 
-											attempt.timestamp, attempt.solution_filepath])
+											attempt.timestamp, attempt.timedata, 
+											attempt.solution_filepath])
 		self.data_mgr.save_attempts_data(attempts_data)
 
 	def get_puzzle(self, puzzle_id):
