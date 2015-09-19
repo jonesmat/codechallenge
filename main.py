@@ -18,7 +18,7 @@ from model.problem_attempt import ProblemAttempt
 
 app = Flask(__name__, static_url_path="", static_folder = "content")
 
-datamgr = DataManager('CodeChallenge-0fc1883d1a1c.json', 'https://docs.google.com/spreadsheets/d/1PmHHHjyvoSg-erK_CvMmKCtYsezHOGHvoUu6EiZWutM/edit#gid=0')
+datamgr = DataManager()
 datamgr.load()
 
 puzzmgr = PuzzleManager(datamgr) 
@@ -26,125 +26,141 @@ puzzmgr.load()
 
 ADMIN_PASSWORD = 'puzzles'
 
+# Setup web app configurations
+app.config['SOLUTION_FOLDER'] = 'solutions/'
+if not os.path.exists(app.config['SOLUTION_FOLDER']):
+	os.makedirs(app.config['SOLUTION_FOLDER'])
+
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024  # 10KB
+
 
 ########## Routes ###########
 
 
 @app.route('/')
 def home():
-	return render_template('home.html', puzzles=puzzmgr.puzzles, team_points_total=puzzmgr.get_total_team_points())
+	try:
+		return render_template('home.html', puzzles=puzzmgr.puzzles, team_points_total=puzzmgr.get_total_team_points())
+	except Exception as ex:
+		return render_template('error.html', error=str(ex)), 500
 
 @app.route('/puzzle/<puzzle_id>', methods=['GET', 'POST'])
 def show_puzzle(puzzle_id):
-	if request.method == 'GET':
-		puzzle = puzzmgr.get_puzzle(puzzle_id)
-		if puzzle is None:
-			return render_template('error.html', error="Puzzle does not exist!"), 403
+	try:
+		if request.method == 'GET':
+			puzzle = puzzmgr.get_puzzle(puzzle_id)
+			if puzzle is None:
+				return render_template('error.html', error="Puzzle does not exist!"), 403
 
-		if puzzle.state == PuzzleState.OPEN:
-			return render_template('puzzle.html', puzzle=puzzle, team_points_total=puzzmgr.get_total_team_points())
-		elif puzzle.state == PuzzleState.CLOSED:
-			return render_template('puzzle_closed.html', puzzle=puzzle, team_points_total=puzzmgr.get_total_team_points())
-		elif puzzle.state == PuzzleState.NEW:
-			return render_template('error.html', error="Puzzle is not yet available!"), 403 
-	else:
-		# Problem submission
-
-		# retrieve form data
-		prob_id = request.form['prob_id']
-		teamname = request.form['teamname']
-		solution_file = request.files['solution_file']  # Returns the actual File obj
-
-		# ensure the puzzle is open and accepting submissions
-		puzzle = puzzmgr.get_puzzle(puzzle_id)
-		if puzzle.state != PuzzleState.OPEN:
-			# The puzzle is not open, redirect to the closed puzzle page
-			return render_template('puzzle_closed.html', puzzle=puzzle, team_points_total=puzzmgr.get_total_team_points())
-
-		# Clean and truncate teamname to prevent abuse
-		teamname = teamname.strip()
-		if len(teamname) > 15:
-			teamname = teamname[0:12] + '...'
-
-		# Store the uploaded solution file
-		solution_filepath = ''
-		if solution_file:
-			filename = secure_filename(solution_file.filename)
-			filename += str(uuid.uuid1())
-			solution_filepath = os.path.join(app.config['SOLUTION_FOLDER'], 
-				filename)
-			solution_file.save(solution_filepath)
+			if puzzle.state == PuzzleState.OPEN:
+				return render_template('puzzle.html', puzzle=puzzle, team_points_total=puzzmgr.get_total_team_points())
+			elif puzzle.state == PuzzleState.CLOSED:
+				return render_template('puzzle_closed.html', puzzle=puzzle, team_points_total=puzzmgr.get_total_team_points())
+			elif puzzle.state == PuzzleState.NEW:
+				return render_template('error.html', error="Puzzle is not yet available!"), 403 
 		else:
-			# An solution file is required, can't continue without it
-			return redirect('/', code=302)
+			# Problem submission
 
-		# Feed solution and problem files to puzzle app to score the attempt.
-		problem = puzzle.get_problem(prob_id)
-		score, error_msg = puzzmgr.score_attempt(puzzle.app_path, problem.problem_file, solution_filepath)
-		
-		# Record the attempt
-		attempt = ProblemAttempt()
-		attempt.teamname = teamname
-		attempt.score = -1  # -1 indicates an error
-		if score > 0:
-			attempt.score = score
-			attempt.timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-			attempt.timedata = time.time()
-			attempt.solution_filepath = solution_filepath
-			problem.attempts.append(attempt)
+			# retrieve form data
+			prob_id = request.form['prob_id']
+			teamname = request.form['teamname']
+			solution_file = request.files['solution_file']  # Returns the actual File obj
 
-			puzzmgr.save()  # Data changed, lets save it.
-		else:
-			pass  # TODO log it
-		
-		return render_template('puzzle_submitted.html', puzzle_id=puzzle_id, attempt=attempt, 
-								team_points_total=puzzmgr.get_total_team_points(), error_msg=error_msg)
+			# ensure the puzzle is open and accepting submissions
+			puzzle = puzzmgr.get_puzzle(puzzle_id)
+			if puzzle.state != PuzzleState.OPEN:
+				# The puzzle is not open, redirect to the closed puzzle page
+				return render_template('puzzle_closed.html', puzzle=puzzle, team_points_total=puzzmgr.get_total_team_points())
+
+			# Clean and truncate teamname to prevent abuse
+			teamname = teamname.strip()
+			if len(teamname) > 15:
+				teamname = teamname[0:12] + '...'
+
+			# Store the uploaded solution file
+			solution_filepath = ''
+			if solution_file:
+				filename = secure_filename(solution_file.filename)
+				filename += str(uuid.uuid1())
+				solution_filepath = os.path.join(app.config['SOLUTION_FOLDER'], 
+					filename)
+				solution_file.save(solution_filepath)
+			else:
+				# An solution file is required, can't continue without it
+				return redirect('/', code=302)
+
+			# Feed solution and problem files to puzzle app to score the attempt.
+			problem = puzzle.get_problem(prob_id)
+			score, error_msg = puzzmgr.score_attempt(puzzle.app_path, problem.problem_file, solution_filepath)
+			
+			# Record the attempt
+			attempt = ProblemAttempt()
+			attempt.teamname = teamname
+			attempt.score = -1  # -1 indicates an error
+			if score > 0:
+				attempt.score = score
+				attempt.timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+				attempt.timedata = time.time()
+				attempt.solution_filepath = solution_filepath
+				problem.attempts.append(attempt)
+
+				puzzmgr.save()  # Data changed, lets save it.
+			else:
+				pass  # TODO log it
+			
+			return render_template('puzzle_submitted.html', puzzle_id=puzzle_id, attempt=attempt, 
+									team_points_total=puzzmgr.get_total_team_points(), error_msg=error_msg)
+	except Exception as ex:
+		return render_template('error.html', error=str(ex)), 500
 
 
 @app.route('/admin', methods=['GET', 'POST'])
 def show_admin():
-	if request.method == 'GET':
-		return render_template('login.html', 
-								team_points_total=puzzmgr.get_total_team_points())
-	else:
-		
-		if 'passcode' in request.form:
-			# Admin is attempting to login
-			passcode = request.form['passcode']
+	try:
+		if request.method == 'GET':
+			return render_template('login.html', 
+									team_points_total=puzzmgr.get_total_team_points())
+		else:
+			
+			if 'passcode' in request.form:
+				# Admin is attempting to login
+				passcode = request.form['passcode']
 
-			if passcode == ADMIN_PASSWORD:
+				if passcode == ADMIN_PASSWORD:
+					return render_template('admin.html', puzzmgr=puzzmgr, 
+											team_points_total=puzzmgr.get_total_team_points())
+				else:
+					return render_template('login.html', 
+											team_points_total=puzzmgr.get_total_team_points())
+			elif 'puzzle_id' in request.form:
+				# Admin is updating a puzzle
+
+				puzzle = puzzmgr.get_puzzle(request.form['puzzle_id'])
+				assert(puzzle)
+
+				# Determine which action the admin is taking on the puzzle
+				if 'open_puzzle' in request.form and puzzle.state != PuzzleState.OPEN:
+					puzzle.state = PuzzleState.OPEN
+				elif 'close_puzzle' in request.form and puzzle.state != PuzzleState.CLOSED:
+					puzzle.state = PuzzleState.CLOSED
+				elif 'reset_puzzle' in request.form and puzzle.state != PuzzleState.NEW:
+					puzzle.reset()
+
+				puzzmgr.save()  # Data changed, save it
+
+				# Return to the admin page after updating the puzzle
 				return render_template('admin.html', puzzmgr=puzzmgr, 
 										team_points_total=puzzmgr.get_total_team_points())
-			else:
-				return render_template('login.html', 
-										team_points_total=puzzmgr.get_total_team_points())
-		elif 'puzzle_id' in request.form:
-			# Admin is updating a puzzle
+			elif 'reload_data' in request.form:
+				# Admin is requesting a data reload
+				datamgr.load()
+				puzzmgr.load()
 
-			puzzle = puzzmgr.get_puzzle(request.form['puzzle_id'])
-			assert(puzzle)
-
-			# Determine which action the admin is taking on the puzzle
-			if 'open_puzzle' in request.form and puzzle.state != PuzzleState.OPEN:
-				puzzle.state = PuzzleState.OPEN
-			elif 'close_puzzle' in request.form and puzzle.state != PuzzleState.CLOSED:
-				puzzle.state = PuzzleState.CLOSED
-			elif 'reset_puzzle' in request.form and puzzle.state != PuzzleState.NEW:
-				puzzle.reset()
-
-			puzzmgr.save()  # Data changed, save it
-
-			# Return to the admin page after updating the puzzle
-			return render_template('admin.html', puzzmgr=puzzmgr, 
-									team_points_total=puzzmgr.get_total_team_points())
-		elif 'reload_data' in request.form:
-			# Admin is requesting a data reload
-			datamgr.load()
-			puzzmgr.load()
-
-			# Reload the admin page
-			return render_template('admin.html', puzzmgr=puzzmgr, 
-										team_points_total=puzzmgr.get_total_team_points())
+				# Reload the admin page
+				return render_template('admin.html', puzzmgr=puzzmgr, 
+											team_points_total=puzzmgr.get_total_team_points())
+	except Exception as ex:
+		return render_template('error.html', error=str(ex)), 500
 
 
 # Error handlers
@@ -173,12 +189,6 @@ def internal_server_error_request(error):
 ########## Main ###########
 
 if __name__ == '__main__':
-	# Configure the app
-	app.config['SOLUTION_FOLDER'] = 'solutions/'
-	if not os.path.exists(app.config['SOLUTION_FOLDER']):
-		os.makedirs(app.config['SOLUTION_FOLDER'])
-	
-	app.config['MAX_CONTENT_LENGTH'] = 10 * 1024  # 10KB
 
 	app.debug = True
 	app.run(host='0.0.0.0')

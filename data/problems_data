@@ -1,0 +1,7 @@
+Puzzle Id,Problem Id,Name,Description,Problem Filepath
+puzz1,puzz1_easy,Easy,An easier challege for the first test puzzle,puzzles/puzzle1/problem1.txt
+puzz1,puzz1_med,Medium,The average challege for the first test puzzle,puzzles/puzzle1/problem2.txt
+puzz1,puzz1_hard,Hard,A difficult challenge for the first test puzzle,puzzles/puzzle1/problem3.txt
+puzz2,puzz2_easy,Easy,An easier challege for the first test puzzle,puzzles/puzzle2/problem1.txt
+puzz2,puzz2_med,Medium,The average challege for the first test puzzle,puzzles/puzzle2/problem2.txt
+puzz2,puzz2_hard,Hard,A difficult challenge for the first test puzzle,puzzles/puzzle2/problem3.txt
