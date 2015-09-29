@@ -15,9 +15,9 @@
 					</div>
 					<div>
 						<!-- Show the top scores (if there are any) -->
-						{% if puzzle.get_team_points()|length > 0 %}
+						{% if puzzle.get_puzzle_point_totals()|length > 0 %}
 							Top scores: 
-							{% for team_points in puzzle.get_team_points() %} 
+							{% for team_points in puzzle.get_puzzle_point_totals() %} 
 								<!-- Only show the first three top scores -->
 								{% if loop.index0 < 3 %}
 									{{ team_points[0] }}({{ team_points[1] }}) 

@@ -40,7 +40,9 @@ app.config['MAX_CONTENT_LENGTH'] = 10 * 1024  # 10KB
 @app.route('/')
 def home():
 	try:
-		return render_template('home.html', puzzles=puzzmgr.puzzles, team_points_total=puzzmgr.get_total_team_points())
+		return render_template('home.html', puzzles=puzzmgr.puzzles, 
+			global_point_totals=puzzmgr.get_global_point_totals())
+		
 	except Exception as ex:
 		return render_template('error.html', error=str(ex)), 500
 
@@ -53,11 +55,18 @@ def show_puzzle(puzzle_id):
 				return render_template('error.html', error="Puzzle does not exist!"), 403
 
 			if puzzle.state == PuzzleState.OPEN:
-				return render_template('puzzle.html', puzzle=puzzle, team_points_total=puzzmgr.get_total_team_points())
+				return render_template('puzzle.html', puzzle=puzzle, 
+					global_point_totals=puzzmgr.get_global_point_totals(), 
+					puzzle_point_totals=puzzle.get_puzzle_point_totals())
+
 			elif puzzle.state == PuzzleState.CLOSED:
-				return render_template('puzzle_closed.html', puzzle=puzzle, team_points_total=puzzmgr.get_total_team_points())
+				return render_template('puzzle_closed.html', puzzle=puzzle, 
+					global_point_totals=puzzmgr.get_global_point_totals(), 
+					puzzle_point_totals=puzzle.get_puzzle_point_totals())
+
 			elif puzzle.state == PuzzleState.NEW:
 				return render_template('error.html', error="Puzzle is not yet available!"), 403 
+
 		else:
 			# Problem submission
 
@@ -70,7 +79,9 @@ def show_puzzle(puzzle_id):
 			puzzle = puzzmgr.get_puzzle(puzzle_id)
 			if puzzle.state != PuzzleState.OPEN:
 				# The puzzle is not open, redirect to the closed puzzle page
-				return render_template('puzzle_closed.html', puzzle=puzzle, team_points_total=puzzmgr.get_total_team_points())
+				return render_template('puzzle_closed.html', puzzle=puzzle, 
+					global_point_totals=puzzmgr.get_global_point_totals(), 
+					puzzle_point_totals=puzzle.get_puzzle_point_totals())
 
 			# Clean and truncate teamname to prevent abuse
 			teamname = teamname.strip()
@@ -109,7 +120,8 @@ def show_puzzle(puzzle_id):
 				pass  # TODO log it
 			
 			return render_template('puzzle_submitted.html', puzzle_id=puzzle_id, attempt=attempt, 
-									team_points_total=puzzmgr.get_total_team_points(), error_msg=error_msg)
+									global_point_totals=puzzmgr.get_global_point_totals(), 
+									error_msg=error_msg)
 	except Exception as ex:
 		return render_template('error.html', error=str(ex)), 500
 
@@ -118,8 +130,7 @@ def show_puzzle(puzzle_id):
 def show_admin():
 	try:
 		if request.method == 'GET':
-			return render_template('login.html', 
-									team_points_total=puzzmgr.get_total_team_points())
+			return render_template('login.html', global_point_totals=puzzmgr.get_global_point_totals())
 		else:
 			
 			if 'passcode' in request.form:
@@ -128,10 +139,10 @@ def show_admin():
 
 				if passcode == ADMIN_PASSWORD:
 					return render_template('admin.html', puzzmgr=puzzmgr, 
-											team_points_total=puzzmgr.get_total_team_points())
+											global_point_totals=puzzmgr.get_global_point_totals())
 				else:
 					return render_template('login.html', 
-											team_points_total=puzzmgr.get_total_team_points())
+											global_point_totals=puzzmgr.get_global_point_totals())
 			elif 'puzzle_id' in request.form:
 				# Admin is updating a puzzle
 
@@ -150,7 +161,7 @@ def show_admin():
 
 				# Return to the admin page after updating the puzzle
 				return render_template('admin.html', puzzmgr=puzzmgr, 
-										team_points_total=puzzmgr.get_total_team_points())
+										global_point_totals=puzzmgr.get_global_point_totals())
 			elif 'reload_data' in request.form:
 				# Admin is requesting a data reload
 				datamgr.load()
@@ -158,7 +169,7 @@ def show_admin():
 
 				# Reload the admin page
 				return render_template('admin.html', puzzmgr=puzzmgr, 
-											team_points_total=puzzmgr.get_total_team_points())
+											global_point_totals=puzzmgr.get_global_point_totals())
 	except Exception as ex:
 		return render_template('error.html', error=str(ex)), 500
 

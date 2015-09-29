@@ -43,4 +43,31 @@
 			</div>
 		{% endfor %}
 	</div>
+	
+	<hr/>
+
+    <div>
+        <h2>Puzzle Points</h2>
+        <table class="pure-table pure-table-horizontal">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Team Name</th>
+                    <th>Points</th>
+                </tr>
+            </thead>
+            
+            <tbody>
+                {% for teamname, points_total in puzzle_point_totals %}
+                    {% if points_total > 0 %}
+                    <tr>
+                        <td>{{loop.index}}</td>
+                        <td>{{ teamname }}</td>
+                        <td>{{ points_total }}</td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% endblock content %}

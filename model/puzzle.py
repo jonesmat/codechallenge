@@ -38,19 +38,22 @@ class Puzzle(object):
 				return problem
 		return None
 
-	def get_team_points(self):
+	def get_puzzle_point_totals(self):
 		"""
 		Returns a list of teams with their total points ordered from highest to lowest for 
 		this puzzle.
 		<teamname, points>
 		"""
+
 		team_points_dict = dict()  
 		for problem in self.problems:
-			team_points_for_problem = problem.get_team_points()  # list of <points, teamname> pairs
-			for teamname, points in team_points_for_problem:
-				if teamname not in team_points_dict.keys():
-					team_points_dict[teamname] = 0
-				team_points_dict[teamname] = team_points_dict[teamname] + points
+			best_attempts = problem.get_best_attempts()
+			for best_attempt in best_attempts:
+				if best_attempt.teamname not in team_points_dict.keys():
+					team_points_dict[best_attempt.teamname] = 0
+
+				team_points_dict[best_attempt.teamname] += best_attempt.points_awarded
+
 		team_points_list = team_points_dict.items()
 
 		# Order the totals by points (highest to lowest)

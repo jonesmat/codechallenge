@@ -30,21 +30,19 @@
         <div id="buffer-middle" class="pure-u-1-24"></div>
 
         <div id="scoreboard" class="pure-u-7-24">
-            <h2 style="text-align: center;">Scoreboard</h2>
+            <h2 style="text-align: center;">Total Points</h2>
             <table class="pure-table pure-table-horizontal">
                 <thead>
                     <tr>
-                        <th>#</th>
                         <th>Team Name</th>
                         <th>Total Points</th>
                     </tr>
                 </thead>
                 
                 <tbody>
-                    {% for teamname, points_total in team_points_total %}
+                    {% for teamname, points_total in global_point_totals %}
                         {% if points_total > 0 %}
                         <tr>
-                            <td>{{loop.index}}</td>
                             <td>{{ teamname }}</td>
                             <td>{{ points_total }}</td>
                         </tr>

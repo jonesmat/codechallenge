@@ -59,14 +59,14 @@ class PuzzleManager(object):
 				return puzzle
 		return None
 
-	def get_total_team_points(self):
+	def get_global_point_totals(self):
 		"""
 		Returns a list of teams with their total points ordered from highest to lowest.
 		<teamname, points>
 		"""
 		team_point_totals_dict = dict()  
 		for puzzle in self.puzzles:
-			team_points_for_puzzle = puzzle.get_team_points()  # list of <points, teamname> pairs
+			team_points_for_puzzle = puzzle.get_puzzle_point_totals()  # list of <points, teamname> pairs
 			for teamname, points in team_points_for_puzzle:
 				if teamname not in team_point_totals_dict.keys():
 					team_point_totals_dict[teamname] = 0

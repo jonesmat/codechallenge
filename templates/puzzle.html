@@ -32,18 +32,18 @@
 				<table class="pure-table pure-table-horizontal">
 					<thead>
 						<tr>
-							<th>#</th>
 							<th>Team Name</th>
 							<th>Score</th>
+							<th>Points</th>
 						</tr>
 					</thead>
 					
 					<tbody>
 						{% for attempt in problem.get_best_attempts() %}
 						<tr>
-							<td>{{loop.index}}</td>
 							<td>{{ attempt.teamname }}</td>
 							<td>{{ attempt.score }}</td>
+							<td>{{ attempt.points_awarded }}</td>
 						</tr>
 						{% endfor %}
 					</tbody>
@@ -54,4 +54,29 @@
 			</div>
 		{% endfor %}
 	</div>
+
+	<hr/>
+
+    <div>
+        <h2>Puzzle Points</h2>
+        <table class="pure-table pure-table-horizontal">
+            <thead>
+                <tr>
+                    <th>Team Name</th>
+                    <th>Points</th>
+                </tr>
+            </thead>
+            
+            <tbody>
+                {% for teamname, points_total in puzzle_point_totals %}
+                    {% if points_total > 0 %}
+                    <tr>
+                        <td>{{ teamname }}</td>
+                        <td>{{ points_total }}</td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% endblock content %}
