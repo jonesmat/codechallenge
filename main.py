@@ -3,7 +3,7 @@ from random import randint
 import uuid
 import time
 
-from flask import Flask, request, render_template, redirect
+from flask import Flask, request, render_template, redirect, make_response
 from werkzeug import secure_filename
 
 from data_manager import DataManager
@@ -37,19 +37,48 @@ app.config['MAX_CONTENT_LENGTH'] = 10 * 1024  # 10KB
 ########## Routes ###########
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def home():
 	try:
-		return render_template('home.html', puzzles=puzzmgr.puzzles, 
-			global_point_totals=puzzmgr.get_global_point_totals())
-		
+		if request.method == 'GET':
+			teamname = request.cookies.get('teamname')
+			if not teamname:  # not set
+				return render_template('team_login.html')
+
+			return render_template('home.html', puzzles=puzzmgr.puzzles, 
+				global_point_totals=puzzmgr.get_global_point_totals(),
+				teamname=teamname)
+		else:
+			# Post
+
+			# Get the teamname from the form post
+			teamname = request.form['teamname']
+			if not teamname:  # not set
+				return render_template('team_login.html')
+
+			resp = make_response(render_template('home.html', puzzles=puzzmgr.puzzles, 
+				global_point_totals=puzzmgr.get_global_point_totals(),
+				teamname=teamname))
+			resp.set_cookie('teamname', teamname)
+
+			return resp
+
 	except Exception as ex:
 		return render_template('error.html', error=str(ex)), 500
+
+@app.route('/changeteamname')
+def change_teamname():
+	resp = make_response(redirect('/'))
+	resp.set_cookie('teamname', '')
+	return resp
 
 @app.route('/puzzle/<puzzle_id>', methods=['GET', 'POST'])
 def show_puzzle(puzzle_id):
 	try:
 		if request.method == 'GET':
+			if not request.cookies.get('teamname'):  # teamname not set, can't view puzzle
+				return render_template('team_login.html')
+
 			puzzle = puzzmgr.get_puzzle(puzzle_id)
 			if puzzle is None:
 				return render_template('error.html', error="Puzzle does not exist!"), 403
@@ -57,22 +86,36 @@ def show_puzzle(puzzle_id):
 			if puzzle.state == PuzzleState.OPEN:
 				return render_template('puzzle.html', puzzle=puzzle, 
 					global_point_totals=puzzmgr.get_global_point_totals(), 
-					puzzle_point_totals=puzzle.get_puzzle_point_totals())
+					puzzle_point_totals=puzzle.get_puzzle_point_totals(),
+					teamname=request.cookies.get('teamname'))
 
 			elif puzzle.state == PuzzleState.CLOSED:
 				return render_template('puzzle_closed.html', puzzle=puzzle, 
 					global_point_totals=puzzmgr.get_global_point_totals(), 
-					puzzle_point_totals=puzzle.get_puzzle_point_totals())
+					puzzle_point_totals=puzzle.get_puzzle_point_totals(),
+					teamname=request.cookies.get('teamname'))
 
 			elif puzzle.state == PuzzleState.NEW:
 				return render_template('error.html', error="Puzzle is not yet available!"), 403 
 
 		else:
-			# Problem submission
+			if 'submit_teamname' in request.form:
+				# Teamname just submitted
+
+				# Get the teamname from the form post
+				teamname = request.form['teamname']
+				if not teamname:  # not set
+					return render_template('team_login.html')
+
+				resp = make_response(redirect('/puzzle/' + puzzle_id))
+				resp.set_cookie('teamname', teamname)
+				return resp
+
+			# Problem attempt submission
 
 			# retrieve form data
 			prob_id = request.form['prob_id']
-			teamname = request.form['teamname']
+			teamname = request.cookies.get('teamname')
 			solution_file = request.files['solution_file']  # Returns the actual File obj
 
 			# ensure the puzzle is open and accepting submissions
@@ -81,7 +124,8 @@ def show_puzzle(puzzle_id):
 				# The puzzle is not open, redirect to the closed puzzle page
 				return render_template('puzzle_closed.html', puzzle=puzzle, 
 					global_point_totals=puzzmgr.get_global_point_totals(), 
-					puzzle_point_totals=puzzle.get_puzzle_point_totals())
+					puzzle_point_totals=puzzle.get_puzzle_point_totals(),
+					teamname=request.cookies.get('teamname'))
 
 			# Clean and truncate teamname to prevent abuse
 			teamname = teamname.strip()
@@ -97,7 +141,7 @@ def show_puzzle(puzzle_id):
 					filename)
 				solution_file.save(solution_filepath)
 			else:
-				# An solution file is required, can't continue without it
+				# A solution file is required, can't continue without it
 				return redirect('/', code=302)
 
 			# Feed solution and problem files to puzzle app to score the attempt.
@@ -120,8 +164,10 @@ def show_puzzle(puzzle_id):
 				pass  # TODO log it
 			
 			return render_template('puzzle_submitted.html', puzzle_id=puzzle_id, attempt=attempt, 
-									global_point_totals=puzzmgr.get_global_point_totals(), 
+									global_point_totals=puzzmgr.get_global_point_totals(),
+									teamname=request.cookies.get('teamname'), 
 									error_msg=error_msg)
+
 	except Exception as ex:
 		return render_template('error.html', error=str(ex)), 500
 
@@ -130,7 +176,9 @@ def show_puzzle(puzzle_id):
 def show_admin():
 	try:
 		if request.method == 'GET':
-			return render_template('login.html', global_point_totals=puzzmgr.get_global_point_totals())
+			return render_template('admin_login.html', 
+										global_point_totals=puzzmgr.get_global_point_totals(),
+										teamname=request.cookies.get('teamname'))
 		else:
 			
 			if 'passcode' in request.form:
@@ -139,10 +187,12 @@ def show_admin():
 
 				if passcode == ADMIN_PASSWORD:
 					return render_template('admin.html', puzzmgr=puzzmgr, 
-											global_point_totals=puzzmgr.get_global_point_totals())
+											global_point_totals=puzzmgr.get_global_point_totals(),
+											teamname=request.cookies.get('teamname'))
 				else:
-					return render_template('login.html', 
-											global_point_totals=puzzmgr.get_global_point_totals())
+					return render_template('admin_login.html', 
+											global_point_totals=puzzmgr.get_global_point_totals(),
+											teamname=request.cookies.get('teamname'))
 			elif 'puzzle_id' in request.form:
 				# Admin is updating a puzzle
 
@@ -161,7 +211,8 @@ def show_admin():
 
 				# Return to the admin page after updating the puzzle
 				return render_template('admin.html', puzzmgr=puzzmgr, 
-										global_point_totals=puzzmgr.get_global_point_totals())
+										global_point_totals=puzzmgr.get_global_point_totals(),
+										teamname=request.cookies.get('teamname'))
 			elif 'reload_data' in request.form:
 				# Admin is requesting a data reload
 				datamgr.load()
@@ -169,7 +220,8 @@ def show_admin():
 
 				# Reload the admin page
 				return render_template('admin.html', puzzmgr=puzzmgr, 
-											global_point_totals=puzzmgr.get_global_point_totals())
+											global_point_totals=puzzmgr.get_global_point_totals(),
+											teamname=request.cookies.get('teamname'))
 	except Exception as ex:
 		return render_template('error.html', error=str(ex)), 500
 

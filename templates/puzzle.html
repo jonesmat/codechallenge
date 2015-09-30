@@ -19,10 +19,9 @@
 						<legend><strong>{{ problem.name }}</strong> - {{ problem.description }}</legend>
 
 						<input style="display:none" id="prob_id" type="text" name="prob_id" value="{{ problem.prob_id }}">
-						<input id="teamname" type="text" name="teamname" placeholder="Team Name (max 15)" required>
 						<input id="solution_file" type="file" name="solution_file" required>
 						
-						<button type="submit" class="pure-button pure-button-primary">Submit</button>
+						<button type="submit" name="submit_attempt" class="pure-button pure-button-primary">Submit</button>
 					</fieldset>
 				</form>
 				
