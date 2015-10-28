@@ -16,7 +16,7 @@ from model.problem_attempt import ProblemAttempt
 ########## Initialization ###########
 
 
-app = Flask(__name__, static_url_path="", static_folder = "content")
+app = Flask(__name__, static_url_path="/content", static_folder = "content")
 
 datamgr = DataManager()
 datamgr.load()
